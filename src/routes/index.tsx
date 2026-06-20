@@ -241,16 +241,23 @@ function Header({ onSettings, streak }: { onSettings: () => void; streak: number
       initial={{ y: -20, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ type: "spring", stiffness: 300, damping: 30 }}
-      className="sticky top-0 z-30 bg-bg/80 backdrop-blur-xl border-b border-ink/8"
+      className="sticky top-0 z-30 bg-bg/80 backdrop-blur-xl"
     >
+      {/* 🇵🇱 Polish flag stripe at top */}
+      <div className="h-[3px] flex">
+        <div className="flex-1 bg-polska-white" />
+        <div className="flex-1 bg-polska-red" />
+      </div>
+
       <div className="mx-auto max-w-md px-4 py-3 flex items-center justify-between gap-3">
         <div className="flex items-center gap-2.5 min-w-0">
           <motion.div
             whileTap={{ scale: 0.9, rotate: -5 }}
-            className="w-9 h-9 bg-accent grid place-items-center font-display text-surface text-lg shrink-0 rounded-xl shadow-sm"
+            className="w-9 h-9 grid place-items-center font-display text-surface text-lg shrink-0 rounded-xl shadow-sm relative overflow-hidden"
+            style={{ background: "linear-gradient(180deg, #ffffff 50%, var(--polska-red) 50%)" }}
             aria-hidden="true"
           >
-            K
+            <span className="relative z-10 text-ink font-display text-base" style={{ textShadow: "0 0 4px rgba(255,255,255,0.8)" }}>K</span>
           </motion.div>
           <div className="min-w-0">
             <div className="font-display text-[15px] leading-none truncate">KROKI</div>
@@ -265,9 +272,9 @@ function Header({ onSettings, streak }: { onSettings: () => void; streak: number
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
               transition={{ type: "spring", stiffness: 400, damping: 15 }}
-              className="bg-accent/10 border border-accent/30 px-2 py-1 rounded-full font-display text-[11px] text-accent flex items-center gap-1"
+              className="bg-polska-red/10 border border-polska-red/30 px-2 py-1 rounded-full font-display text-[11px] text-polska-red flex items-center gap-1"
             >
-              <span>🔥</span> {streak}
+              <span>🇵🇱</span> {streak}
             </motion.div>
           )}
           <motion.button

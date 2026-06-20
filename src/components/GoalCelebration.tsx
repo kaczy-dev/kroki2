@@ -55,13 +55,13 @@ export function GoalCelebration({ show, steps, goal, onDismiss }: Props) {
           className="fixed inset-0 z-[100] flex items-center justify-center"
           onClick={dismiss}
         >
-          {/* Backdrop with radial gradient */}
+          {/* Backdrop with Polish red gradient */}
           <motion.div
             className="absolute inset-0"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             style={{
-              background: "radial-gradient(circle at 50% 40%, rgba(230, 57, 70, 0.15) 0%, rgba(0,0,0,0.85) 100%)",
+              background: "radial-gradient(circle at 50% 40%, rgba(220, 20, 60, 0.2) 0%, rgba(0,0,0,0.85) 100%)",
             }}
           />
 

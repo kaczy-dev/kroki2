@@ -37,10 +37,14 @@ export function BottomNav() {
 
   return (
     <nav className="fixed bottom-0 inset-x-0 z-40 bg-surface/90 backdrop-blur-xl pb-[env(safe-area-inset-bottom)]" aria-label="Nawigacja główna">
-      {/* Mini progress bar at top of nav */}
-      <div className="h-[2px] bg-bg relative overflow-hidden">
+      {/* 🇵🇱 Polish flag progress bar */}
+      <div className="h-[3px] relative overflow-hidden">
+        <div className="absolute inset-0 flex">
+          <div className="flex-1 bg-polska-white/30" />
+          <div className="flex-1 bg-polska-red/30" />
+        </div>
         <motion.div
-          className="h-full bg-accent/60"
+          className="h-full bg-polska-red"
           initial={false}
           animate={{ width: `${progressPct}%` }}
           transition={{ duration: 0.5, ease: "easeOut" }}

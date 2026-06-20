@@ -60,9 +60,10 @@ function saveAch(s: Set<string>) {
 async function fireConfetti() {
   if (typeof window === "undefined") return;
   const { default: confetti } = await import("canvas-confetti");
+  // 🇵🇱 Polish flag colors!
   const opts = { spread: 100, startVelocity: 30, ticks: 90, gravity: 0.8, scalar: 1.1 };
-  confetti({ ...opts, particleCount: 60, origin: { x: 0.25, y: 0.6 }, colors: ["#e63946", "#2d936c", "#faf7f2", "#1a1a1a"] });
-  confetti({ ...opts, particleCount: 60, origin: { x: 0.75, y: 0.6 }, colors: ["#e63946", "#2d936c", "#faf7f2", "#1a1a1a"] });
+  confetti({ ...opts, particleCount: 70, origin: { x: 0.25, y: 0.6 }, colors: ["#ffffff", "#dc143c", "#ffffff"] });
+  confetti({ ...opts, particleCount: 70, origin: { x: 0.75, y: 0.6 }, colors: ["#dc143c", "#ffffff", "#dc143c"] });
 }
 
 function vibrate(p: number | number[]) {
