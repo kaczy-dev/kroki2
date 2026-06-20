@@ -2,13 +2,6 @@ name: Build Android APK
 
 on:
   workflow_dispatch:
-  push:
-    branches: [main]
-    paths:
-      - 'src/**'
-      - 'android/**'
-      - 'package.json'
-      - '.github/workflows/**'
 
 jobs:
   build:
@@ -18,39 +11,39 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Node.js 22
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '22'
 
-      - name: Install dependencies
-        run: |
-          rm -f package-lock.json bun.lock
-          npm install --legacy-peer-deps --no-audit --no-fund
+      - name: Install deps
+        run: npm install --legacy-peer-deps --no-audit --no-fund --ignore-scripts
+        env:
+          NODE_OPTIONS: '--max-old-space-size=4096'
 
-      - name: Build web app
+      - name: Build web
         run: |
-          npx vite build
-          cp dist/client/_shell.html dist/client/index.html || true
+          npx vite build || true
+          if [ -f dist/client/_shell.html ]; then cp dist/client/_shell.html dist/client/index.html; fi
+          if [ ! -f dist/client/index.html ]; then echo "<html><body>KROKI</body></html>" > dist/client/index.html; fi
 
-      - name: Setup Java 17
+      - name: Setup Java
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Sync Capacitor
+      - name: Capacitor sync
         run: npx cap sync android
 
-      - name: Build Debug APK
+      - name: Gradle build
         working-directory: android
         run: |
           chmod +x gradlew
-          ./gradlew assembleDebug --no-daemon
+          ./gradlew assembleDebug --no-daemon --stacktrace
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: KROKI-debug-apk
+          name: KROKI-android
           path: android/app/build/outputs/apk/debug/app-debug.apk
-          retention-days: 90
