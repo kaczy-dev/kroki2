@@ -38,9 +38,9 @@ export function AnimatedRing({ steps, goal, size = 280, onTap }: Props) {
       {/* Polish eagle watermark in background */}
       <div
         className="absolute inset-0 grid place-items-center pointer-events-none animate-eagle"
-        style={{ fontSize: size * 0.35 }}
+        style={{ fontSize: size * 0.3 }}
       >
-        🦅
+        🍺
       </div>
 
       {/* Ambient glow */}
@@ -80,10 +80,10 @@ export function AnimatedRing({ steps, goal, size = 280, onTap }: Props) {
 
       <svg width={size} height={size} className="relative -rotate-90">
         <defs>
-          {/* 🇵🇱 Polish flag gradient — white to red */}
+          {/* 🍺 Beer golden gradient + Polish red for completion */}
           <linearGradient id="ring-pl-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor={completed ? "var(--success)" : "#ffffff"} />
-            <stop offset="40%" stopColor={completed ? "#6ee7b7" : "#ffa0a0"} />
+            <stop offset="0%" stopColor={completed ? "var(--success)" : "var(--beer)"} />
+            <stop offset="50%" stopColor={completed ? "#6ee7b7" : "#f59e0b"} />
             <stop offset="100%" stopColor={completed ? "var(--success)" : "var(--polska-red)"} />
           </linearGradient>
           <filter id="ring-glow">

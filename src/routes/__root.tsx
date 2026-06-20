@@ -80,7 +80,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover" },
       { title: "KROKI — Krokomierz w przeglądarce" },
       { name: "description", content: "Bezpłatny krokomierz w przeglądarce. Licz kroki w czasie rzeczywistym bez aplikacji, bez konta, bez chmury. Dane zostają na Twoim urządzeniu." },
-      { name: "theme-color", content: "#fefefe" },
+      { name: "theme-color", content: "#fffef8" },
       { name: "application-name", content: "KROKI" },
       { name: "apple-mobile-web-app-title", content: "KROKI" },
       { name: "apple-mobile-web-app-capable", content: "yes" },

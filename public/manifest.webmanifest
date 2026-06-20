@@ -5,8 +5,8 @@
   "start_url": "/",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#fefefe",
-  "theme_color": "#dc143c",
+  "background_color": "#fffef8",
+  "theme_color": "#f59e0b",
   "lang": "pl",
   "categories": ["fitness", "health"],
   "icons": [

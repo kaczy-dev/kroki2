@@ -10,6 +10,7 @@
   --color-success: var(--success);
   --color-muted: var(--muted);
   --color-warning: var(--warning);
+  --color-beer: var(--beer);
   --color-polska-red: var(--polska-red);
   --color-polska-white: var(--polska-white);
 
@@ -18,35 +19,35 @@
 }
 
 /*
- * 🇵🇱 POLSKA LIGHT — biały jak flaga, czerwony akcent
- * Inspirowany polską flagą: biały górny pas, czerwony dolny
+ * 🇵🇱🍺 POLSKA + PIWO — biały jak piana, złoty jak piwo, czerwony jak flaga
  */
 :root {
-  --bg: #fefefe;
-  --ink: #1b1b1b;
+  --bg: #fffef8;
+  --ink: #1a1714;
   --accent: #dc143c;
-  --surface: #f0f0f0;
+  --surface: #f5f0e8;
   --success: #2e7d32;
-  --muted: #6e6e6e;
-  --warning: #e6a817;
+  --muted: #8a7e6e;
+  --warning: #d4920a;
+  --beer: #f59e0b;
   --polska-red: #dc143c;
   --polska-white: #ffffff;
 }
 
 /*
- * 🇵🇱 POLSKA DARK — głęboki grafit z czerwonym akcentem
- * Ciemna wersja zachowująca polski charakter
+ * 🌙🍺 DARK — ciemny porter z czerwienią
  */
 :root[data-theme="dark"] {
-  --bg: #0d0d0d;
-  --ink: #f0f0f0;
+  --bg: #0e0c0a;
+  --ink: #f2ede6;
   --accent: #ef4444;
-  --surface: #1f1f1f;
+  --surface: #1c1915;
   --success: #4ade80;
-  --muted: #8a8a8a;
-  --warning: #fbbf24;
+  --muted: #9a8e7e;
+  --warning: #f59e0b;
+  --beer: #d97706;
   --polska-red: #ef4444;
-  --polska-white: #f0f0f0;
+  --polska-white: #f2ede6;
 }
 
 @layer base {
@@ -60,12 +61,12 @@
   }
   body {
     min-height: 100dvh;
-    /* Subtle Polish flag gradient at bottom */
+    /* Beer gradient at bottom — warm golden glow */
     background-image: linear-gradient(
       to bottom,
       var(--bg) 0%,
-      var(--bg) 92%,
-      color-mix(in srgb, var(--accent) 6%, var(--bg)) 100%
+      var(--bg) 90%,
+      color-mix(in srgb, var(--beer) 5%, var(--bg)) 100%
     );
     background-attachment: fixed;
   }
@@ -76,17 +77,15 @@
   }
 
   :focus-visible {
-    outline: 3px solid var(--accent);
+    outline: 2.5px solid var(--beer);
     outline-offset: 2px;
   }
   button:focus-visible, a:focus-visible, input:focus-visible {
-    outline: 3px solid var(--accent);
+    outline: 2.5px solid var(--beer);
     outline-offset: 2px;
   }
 
-  * {
-    -webkit-tap-highlight-color: transparent;
-  }
+  * { -webkit-tap-highlight-color: transparent; }
 
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after {
@@ -99,35 +98,53 @@
   button:not([data-compact]), a:not([data-compact]), [role="button"]:not([data-compact]) {
     min-height: 44px;
   }
+
+  /* Selection color — beer golden */
+  ::selection {
+    background: color-mix(in srgb, var(--beer) 30%, transparent);
+  }
+
+  /* Battery saver mode — reduce all animations */
+  [data-battery-saver] * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.1s !important;
+  }
+  [data-battery-saver] .animate-glow,
+  [data-battery-saver] .animate-float,
+  [data-battery-saver] .animate-eagle,
+  [data-battery-saver] .animate-bubble {
+    animation: none !important;
+    opacity: 0 !important;
+  }
 }
 
 @utility brut-border {
   border: 2px solid var(--ink);
 }
 @utility brut-shadow {
-  box-shadow: 5px 5px 0 0 var(--ink);
+  box-shadow: 4px 4px 0 0 var(--ink);
 }
 @utility brut-shadow-sm {
-  box-shadow: 3px 3px 0 0 var(--ink);
+  box-shadow: 2px 2px 0 0 var(--ink);
 }
 @utility brut-shadow-lg {
-  box-shadow: 8px 8px 0 0 var(--ink);
+  box-shadow: 6px 6px 0 0 var(--ink);
 }
 @utility brut-card {
   background: var(--surface);
   border: 2px solid var(--ink);
-  border-radius: 6px;
+  border-radius: 8px;
   box-shadow: 3px 3px 0 0 var(--ink);
   transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
 }
 @utility press {
-  transition: transform 80ms ease, box-shadow 80ms ease;
+  transition: transform 60ms ease, box-shadow 60ms ease;
   &:active {
-    transform: translate(3px, 3px);
+    transform: translate(2px, 2px);
     box-shadow: 1px 1px 0 0 var(--ink);
   }
 }
-/* Polish flag stripe accent on cards */
 @utility polska-stripe {
   position: relative;
   overflow: hidden;
@@ -141,10 +158,13 @@
     background: linear-gradient(to right, var(--polska-white) 50%, var(--polska-red) 50%);
   }
 }
+@utility beer-glow {
+  box-shadow: 0 0 20px 2px color-mix(in srgb, var(--beer) 25%, transparent);
+}
 
 @keyframes step-pulse {
   0% { transform: scale(1); }
-  30% { transform: scale(1.03); }
+  30% { transform: scale(1.025); }
   100% { transform: scale(1); }
 }
 @keyframes shake {
@@ -153,34 +173,28 @@
   75% { transform: translateX(2px); }
 }
 @keyframes glow-pulse {
-  0%, 100% { opacity: 0.4; }
-  50% { opacity: 0.9; }
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 0.8; }
 }
 @keyframes float {
   0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-4px); }
+  50% { transform: translateY(-3px); }
 }
-@keyframes shimmer {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
+@keyframes bubble {
+  0% { transform: translateY(0) scale(1); opacity: 0.7; }
+  100% { transform: translateY(-20px) scale(0.5); opacity: 0; }
 }
-@keyframes flag-wave {
-  0%, 100% { transform: rotate(0deg) scale(1); }
-  25% { transform: rotate(-2deg) scale(1.02); }
-  75% { transform: rotate(2deg) scale(1.02); }
+@keyframes pour {
+  0% { height: 0%; }
+  100% { height: var(--pour-height, 60%); }
 }
 @keyframes eagle-pulse {
-  0%, 100% { opacity: 0.06; transform: scale(1); }
-  50% { opacity: 0.1; transform: scale(1.02); }
+  0%, 100% { opacity: 0.05; transform: scale(1); }
+  50% { opacity: 0.09; transform: scale(1.01); }
 }
-.animate-step-pulse { animation: step-pulse 200ms ease-out; }
-.animate-shake { animation: shake 180ms ease-in-out; }
+.animate-step-pulse { animation: step-pulse 180ms ease-out; }
+.animate-shake { animation: shake 160ms ease-in-out; }
 .animate-glow { animation: glow-pulse 2.5s ease-in-out infinite; }
 .animate-float { animation: float 3s ease-in-out infinite; }
-.animate-flag-wave { animation: flag-wave 4s ease-in-out infinite; }
+.animate-bubble { animation: bubble 1.5s ease-out forwards; }
 .animate-eagle { animation: eagle-pulse 5s ease-in-out infinite; }
-.animate-shimmer {
-  background: linear-gradient(90deg, transparent 0%, var(--accent) 50%, transparent 100%);
-  background-size: 200% 100%;
-  animation: shimmer 2s linear infinite;
-}

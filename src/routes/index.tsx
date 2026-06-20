@@ -193,8 +193,8 @@ function Header({ onSettings, streak }: { onSettings: () => void; streak: number
         </div>
         <div className="flex items-center gap-1.5 shrink-0">
           {streak > 0 && (
-            <div className="bg-polska-red/10 border border-polska-red/25 px-1.5 py-0.5 rounded-full font-display text-[10px] text-polska-red flex items-center gap-0.5" data-compact>
-              🔥 {streak}
+            <div className="bg-beer/15 border border-beer/30 px-1.5 py-0.5 rounded-full font-display text-[10px] text-beer flex items-center gap-0.5" data-compact>
+              🍺 {streak}
             </div>
           )}
           <motion.button

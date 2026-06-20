@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTheme } from "@/hooks/useTheme";
 import { useSound } from "@/hooks/useSound";
+import { useBatterySaver } from "@/hooks/useBatterySaver";
 import { toast } from "sonner";
 
 interface Props {
@@ -43,6 +44,7 @@ export function SettingsSheet({
   const [heightCm, setHeightCm] = useState(Math.round(stepLength / 0.415));
   const { theme, setTheme, isAuto, setAuto } = useTheme();
   const { enabled: soundEnabled, toggle: toggleSound } = useSound();
+  const { active: batterySaver, toggle: toggleBatterySaver } = useBatterySaver();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => { setDraft(goal); }, [goal, open]);
@@ -247,6 +249,17 @@ export function SettingsSheet({
                       <span className={`text-[10px] font-display px-2.5 py-1 rounded-full ${streakFreezeUsed ? "bg-ink/10 text-muted" : "bg-success/15 text-success"}`}>
                         {streakFreezeUsed ? "Użyty" : "Gotowy"}
                       </span>
+                    </div>
+
+                    <div className="bg-surface rounded-xl border-2 border-ink p-3.5 flex items-center justify-between">
+                      <div className="flex items-center gap-2.5">
+                        <span className="text-base">🔋</span>
+                        <div>
+                          <div className="font-display text-[11px]">Tryb oszczędny</div>
+                          <div className="text-[9px] font-mono text-muted">Mniej animacji, dłuższa bateria</div>
+                        </div>
+                      </div>
+                      <Toggle active={batterySaver} onToggle={toggleBatterySaver} label="Battery saver" />
                     </div>
                   </div>
                 </motion.section>
