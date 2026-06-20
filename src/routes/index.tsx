@@ -45,17 +45,19 @@ function Index() {
   }, [ctx.stepsToday, ctx.goal]);
 
   const motivation = useMemo(() => {
-    const messages = [
-      "Każdy krok się liczy 🚶",
-      "Ruch to zdrowie 💪",
-      "Pobij swój rekord! 🏆",
-      "Spacer czyni cuda ✨",
-      "Krok po kroku do celu 🎯",
-      "Twoje ciało dziękuje 🙏",
-      "Bądź aktywny 🌿",
-      "Małe kroki, wielkie zmiany 🔥",
-    ];
-    return messages[Math.floor(Math.random() * messages.length)];
+    const hour = new Date().getHours();
+    // Context-aware messages based on time of day
+    if (hour < 7) return "Wczesny spacer? Szacunek! 🌅";
+    if (hour < 12) {
+      const msgs = ["Ruszaj się od rana 💪", "Poranny spacer = dobry dzień ☀️", "Krok po kroku do celu 🎯"];
+      return msgs[Math.floor(Math.random() * msgs.length)];
+    }
+    if (hour < 18) {
+      const msgs = ["Świetnie Ci idzie! 🚶", "Połowa dnia — rusz się! ⚡", "Spacer czyni cuda ✨"];
+      return msgs[Math.floor(Math.random() * msgs.length)];
+    }
+    const msgs = ["Wieczorny spacer relaksuje 🌙", "Jeszcze kilka kroków! 🔥", "Zakończ dzień aktywnie 🌿"];
+    return msgs[Math.floor(Math.random() * msgs.length)];
   }, []);
 
   return (

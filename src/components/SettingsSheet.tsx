@@ -19,12 +19,37 @@ interface Props {
   streakFreezeUsed: boolean;
 }
 
+function SettingRow({ icon, title, subtitle, children }: { icon: string; title: string; subtitle?: string; children: React.ReactNode }) {
+  return (
+    <div className="flex items-center gap-3 p-3 bg-surface rounded-lg border border-ink/8">
+      <span className="text-lg shrink-0">{icon}</span>
+      <div className="flex-1 min-w-0">
+        <div className="font-display text-[11px] tracking-wide">{title}</div>
+        {subtitle && <div className="text-[10px] font-mono text-muted mt-0.5">{subtitle}</div>}
+      </div>
+      <div className="shrink-0">{children}</div>
+    </div>
+  );
+}
+
+function Toggle({ active, onToggle, label }: { active: boolean; onToggle: () => void; label?: string }) {
+  return (
+    <button
+      onClick={onToggle}
+      aria-label={label}
+      className={`relative w-11 h-6 rounded-full transition-colors ${active ? "bg-accent" : "bg-ink/15"}`}
+    >
+      <div className={`absolute top-0.5 w-5 h-5 rounded-full bg-surface shadow-sm transition-transform ${active ? "left-[22px]" : "left-0.5"}`} />
+    </button>
+  );
+}
+
 export function SettingsSheet({
   open, onClose, goal, onGoalChange, onReset, onExport, onImport,
   wakeLockActive, onToggleWakeLock, stepLength, onStepLengthChange, streakFreezeUsed,
 }: Props) {
   const [draft, setDraft] = useState(goal);
-  const [heightCm, setHeightCm] = useState(Math.round(stepLength / 0.415)); // reverse: step ≈ 41.5% of height
+  const [heightCm, setHeightCm] = useState(Math.round(stepLength / 0.415));
   const { theme, setTheme, isAuto, setAuto } = useTheme();
   const { enabled: soundEnabled, toggle: toggleSound } = useSound();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -32,14 +57,10 @@ export function SettingsSheet({
   useEffect(() => { setDraft(goal); }, [goal, open]);
   useEffect(() => { setHeightCm(Math.round(stepLength / 0.415)); }, [stepLength, open]);
 
-  const save = () => {
-    onGoalChange(draft);
-    onClose();
-  };
+  const save = () => { onGoalChange(draft); onClose(); };
 
   const handleHeightChange = (cm: number) => {
     setHeightCm(cm);
-    // Step length ≈ 41.5% of height (common approximation)
     onStepLengthChange(Math.round(cm * 0.415 * 10) / 10);
   };
 
@@ -49,11 +70,9 @@ export function SettingsSheet({
     const reader = new FileReader();
     reader.onload = () => {
       const result = onImport(reader.result as string);
-      if (result) {
-        toast("✅ Import udany!", { description: "Dane zostały wczytane." });
-      } else {
-        toast("❌ Błąd importu", { description: "Nieprawidłowy format pliku." });
-      }
+      toast(result ? "✅ Import udany!" : "❌ Błąd importu", {
+        description: result ? "Dane wczytane." : "Nieprawidłowy format.",
+      });
     };
     reader.readAsText(file);
     e.target.value = "";
@@ -61,42 +80,31 @@ export function SettingsSheet({
 
   const handleShare = async () => {
     if (typeof navigator === "undefined") return;
+    const text = `Mój cel: ${goal.toLocaleString("pl-PL")} kroków/dzień! 🚶 Liczę z KROKI.`;
     if ("share" in navigator && navigator.share) {
-      try {
-        await navigator.share({
-          title: "Moje kroki — KROKI",
-          text: `Dziś: cel ${goal.toLocaleString("pl-PL")} kroków! 🚶 Liczę kroki z KROKI.`,
-        });
-      } catch { /* cancelled */ }
+      try { await navigator.share({ title: "KROKI", text }); } catch { /* */ }
     } else if ("clipboard" in navigator) {
-      await navigator.clipboard.writeText(
-        `Dziś: cel ${goal.toLocaleString("pl-PL")} kroków! 🚶 Liczę kroki z KROKI.`
-      );
-      toast("📋 Skopiowano do schowka!");
+      await navigator.clipboard.writeText(text);
+      toast("📋 Skopiowano!");
     }
   };
 
   return (
     <Drawer.Root open={open} onOpenChange={(o) => { if (!o) onClose(); }}>
       <Drawer.Portal>
-        <Drawer.Overlay className="fixed inset-0 z-50 bg-ink/40" />
-        <Drawer.Content className="fixed inset-x-0 bottom-0 z-50 flex flex-col">
-          <div className="mx-auto w-full max-w-md brut-border bg-bg p-5 pb-[env(safe-area-inset-bottom)]">
-            {/* Drag handle */}
-            <div className="mx-auto mb-4 h-1.5 w-12 bg-ink/30" />
+        <Drawer.Overlay className="fixed inset-0 z-50 bg-ink/50 backdrop-blur-sm" />
+        <Drawer.Content className="fixed inset-x-0 bottom-0 z-50 flex flex-col rounded-t-2xl">
+          <div className="mx-auto w-full max-w-md bg-bg rounded-t-2xl p-5 pb-[calc(env(safe-area-inset-bottom)+1rem)]">
+            {/* Handle */}
+            <div className="mx-auto mb-5 h-1 w-10 rounded-full bg-ink/20" />
 
-            <div className="flex items-center justify-between">
-              <Drawer.Title className="font-display text-xl uppercase">Ustawienia</Drawer.Title>
-              <button onClick={onClose} className="brut-border press bg-surface font-display text-xs px-3 py-1">
-                ZAMKNIJ
-              </button>
-            </div>
+            <Drawer.Title className="font-display text-lg">Ustawienia</Drawer.Title>
 
-            <div className="mt-5 space-y-4 max-h-[70dvh] overflow-y-auto">
-              {/* Goal */}
-              <div>
-                <label className="font-display text-xs">DZIENNY CEL</label>
-                <div className="mt-2 flex gap-2">
+            <div className="mt-4 space-y-3 max-h-[65dvh] overflow-y-auto overscroll-contain -mx-1 px-1">
+              {/* Goal section */}
+              <section>
+                <div className="text-[9px] font-display text-muted tracking-wider mb-2 px-1">CEL DZIENNY</div>
+                <div className="flex gap-2">
                   <input
                     type="number"
                     value={draft}
@@ -104,160 +112,110 @@ export function SettingsSheet({
                     min={1000}
                     max={50000}
                     onChange={(e) => setDraft(Number(e.target.value))}
-                    className="flex-1 brut-border bg-surface px-3 py-2 font-mono text-lg focus:outline-none focus:ring-2 focus:ring-ink focus:ring-offset-2"
+                    className="flex-1 bg-surface border border-ink/10 rounded-lg px-3 py-2.5 font-mono text-lg focus:outline-none focus:ring-2 focus:ring-accent/50"
                   />
-                  <button onClick={save} className="brut-border brut-shadow press bg-accent text-surface font-display px-4">
-                    ZAPISZ
+                  <button onClick={save} className="bg-accent text-surface font-display text-xs px-4 rounded-lg active:scale-95 transition-transform">
+                    OK
                   </button>
                 </div>
-                <div className="mt-2 flex flex-wrap gap-2">
+                <div className="mt-2 flex flex-wrap gap-1.5">
                   {[5000, 8000, 10000, 12000, 15000].map((g) => (
                     <button
                       key={g}
                       onClick={() => setDraft(g)}
-                      className={`brut-border press font-mono text-xs px-2 py-1 ${draft === g ? "bg-ink text-bg" : "bg-surface"}`}
+                      className={`font-mono text-[10px] px-2.5 py-1 rounded-full border transition-colors ${draft === g ? "bg-ink text-bg border-ink" : "bg-surface border-ink/10 text-ink/70"}`}
                     >
-                      {g.toLocaleString("pl-PL")}
+                      {g >= 10000 ? `${g / 1000}k` : g.toLocaleString("pl-PL")}
                     </button>
                   ))}
                 </div>
-              </div>
+              </section>
 
-              {/* Step length / height */}
-              <div className="brut-border bg-surface p-3">
-                <div className="font-display text-xs">WZROST (DŁUGOŚĆ KROKU)</div>
-                <div className="text-[11px] font-mono text-muted mt-1">
-                  Wzrost: {heightCm} cm → krok: {stepLength.toFixed(1)} cm
-                </div>
-                <input
-                  type="range"
-                  min={140}
-                  max={210}
-                  value={heightCm}
-                  onChange={(e) => handleHeightChange(Number(e.target.value))}
-                  className="mt-2 w-full accent-accent"
-                />
-                <div className="flex justify-between text-[9px] font-mono text-muted mt-1">
-                  <span>140 cm</span>
-                  <span>210 cm</span>
-                </div>
-              </div>
-
-              {/* Wake Lock */}
-              <div className="brut-border bg-surface p-3 flex items-center justify-between">
-                <div>
-                  <div className="font-display text-xs">EKRAN AKTYWNY</div>
-                  <div className="text-[11px] font-mono text-muted">Blokuj wygaszanie ekranu</div>
-                </div>
-                <button
-                  onClick={onToggleWakeLock}
-                  aria-label={wakeLockActive ? "Wyłącz blokadę ekranu" : "Włącz blokadę ekranu"}
-                  className={`brut-border press font-display text-[10px] px-3 py-2 ${wakeLockActive ? "bg-accent text-surface" : "bg-bg"}`}
-                >
-                  {wakeLockActive ? "WŁ." : "WYŁ."}
-                </button>
-              </div>
-
-              {/* Streak freeze info */}
-              <div className="brut-border bg-surface p-3">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <div className="font-display text-xs">STREAK FREEZE 🧊</div>
-                    <div className="text-[11px] font-mono text-muted">
-                      1 dzień wolny / tydzień nie przerywa serii
+              {/* Body settings */}
+              <section>
+                <div className="text-[9px] font-display text-muted tracking-wider mb-2 px-1">POMIARY</div>
+                <div className="bg-surface rounded-lg border border-ink/8 p-3">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="font-display text-[11px]">📏 Wzrost</div>
+                      <div className="text-[10px] font-mono text-muted">{heightCm} cm → krok {stepLength.toFixed(1)} cm</div>
                     </div>
+                    <div className="font-mono text-sm text-ink/80">{heightCm}</div>
                   </div>
-                  <div className={`brut-border font-display text-[10px] px-2 py-1 ${streakFreezeUsed ? "bg-muted/30 text-muted" : "bg-success/20 text-ink"}`}>
-                    {streakFreezeUsed ? "UŻYTY" : "DOSTĘPNY"}
-                  </div>
+                  <input
+                    type="range"
+                    min={140}
+                    max={210}
+                    value={heightCm}
+                    onChange={(e) => handleHeightChange(Number(e.target.value))}
+                    className="mt-2 w-full h-1.5 rounded-full appearance-none bg-ink/10 accent-accent"
+                  />
                 </div>
-              </div>
+              </section>
 
-              {/* Sound */}
-              <div className="brut-border bg-surface p-3 flex items-center justify-between">
-                <div>
-                  <div className="font-display text-xs">DŹWIĘKI 🔊</div>
-                  <div className="text-[11px] font-mono text-muted">Efekty przy milestones</div>
+              {/* Toggles */}
+              <section>
+                <div className="text-[9px] font-display text-muted tracking-wider mb-2 px-1">PREFERENCJE</div>
+                <div className="space-y-1.5">
+                  <SettingRow icon="📱" title="Ekran aktywny" subtitle="Nie wygaszaj podczas spaceru">
+                    <Toggle active={wakeLockActive} onToggle={onToggleWakeLock} label="Wake lock" />
+                  </SettingRow>
+                  <SettingRow icon="🔊" title="Dźwięki" subtitle="Efekty przy milestones">
+                    <Toggle active={soundEnabled} onToggle={toggleSound} label="Sound" />
+                  </SettingRow>
+                  <SettingRow icon="🧊" title="Streak freeze" subtitle="1 wolny dzień/tydzień">
+                    <span className={`text-[10px] font-display px-2 py-1 rounded-full ${streakFreezeUsed ? "bg-ink/10 text-muted" : "bg-success/15 text-success"}`}>
+                      {streakFreezeUsed ? "Użyty" : "Gotowy"}
+                    </span>
+                  </SettingRow>
                 </div>
-                <button
-                  onClick={toggleSound}
-                  aria-label={soundEnabled ? "Wyłącz dźwięki" : "Włącz dźwięki"}
-                  className={`brut-border press font-display text-[10px] px-3 py-2 ${soundEnabled ? "bg-accent text-surface" : "bg-bg"}`}
-                >
-                  {soundEnabled ? "WŁ." : "WYŁ."}
-                </button>
-              </div>
+              </section>
 
               {/* Theme */}
-              <div className="brut-border bg-surface p-3">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <div className="font-display text-xs">MOTYW</div>
-                    <div className="text-[11px] font-mono text-muted">
-                      {isAuto ? "Automatyczny (system)" : theme === "dark" ? "Ciemny" : "Jasny"}
-                    </div>
-                  </div>
-                  <div className="flex gap-1">
+              <section>
+                <div className="text-[9px] font-display text-muted tracking-wider mb-2 px-1">WYGLĄD</div>
+                <div className="grid grid-cols-3 gap-1.5">
+                  {([
+                    { key: "auto", label: "Auto", icon: "🌗", check: isAuto, action: setAuto },
+                    { key: "light", label: "Jasny", icon: "☀️", check: !isAuto && theme === "light", action: () => setTheme("light") },
+                    { key: "dark", label: "Ciemny", icon: "🌙", check: !isAuto && theme === "dark", action: () => setTheme("dark") },
+                  ] as const).map((t) => (
                     <button
-                      onClick={setAuto}
-                      aria-label="Motyw automatyczny"
-                      className={`brut-border press font-display text-[10px] px-2 py-1 ${isAuto ? "bg-ink text-bg" : "bg-bg"}`}
+                      key={t.key}
+                      onClick={t.action}
+                      className={`flex flex-col items-center gap-1 py-3 rounded-lg border transition-colors ${t.check ? "bg-accent/10 border-accent/30 text-accent" : "bg-surface border-ink/8 text-ink/70"}`}
                     >
-                      AUTO
+                      <span className="text-lg">{t.icon}</span>
+                      <span className="text-[9px] font-display">{t.label}</span>
                     </button>
-                    <button
-                      onClick={() => setTheme("light")}
-                      aria-label="Motyw jasny"
-                      className={`brut-border press font-display text-[10px] px-2 py-1 ${!isAuto && theme === "light" ? "bg-ink text-bg" : "bg-bg"}`}
-                    >
-                      ☀️
-                    </button>
-                    <button
-                      onClick={() => setTheme("dark")}
-                      aria-label="Motyw ciemny"
-                      className={`brut-border press font-display text-[10px] px-2 py-1 ${!isAuto && theme === "dark" ? "bg-ink text-bg" : "bg-bg"}`}
-                    >
-                      🌙
-                    </button>
-                  </div>
+                  ))}
                 </div>
-              </div>
+              </section>
 
               {/* Actions */}
-              <div className="grid grid-cols-2 gap-2">
-                <button onClick={onExport} className="brut-border press bg-surface font-display text-xs py-3">
-                  EKSPORT JSON
-                </button>
-                <button
-                  onClick={() => fileInputRef.current?.click()}
-                  className="brut-border press bg-surface font-display text-xs py-3"
-                >
-                  IMPORT JSON
-                </button>
-                <button
-                  onClick={handleShare}
-                  className="brut-border press bg-surface font-display text-xs py-3"
-                >
-                  UDOSTĘPNIJ 📤
-                </button>
-                <button
-                  onClick={() => {
-                    if (confirm("Zresetować dzisiejsze kroki?")) onReset();
-                  }}
-                  className="brut-border press bg-accent text-surface font-display text-xs py-3"
-                >
-                  RESET DZISIAJ
-                </button>
-              </div>
-
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept=".json,application/json"
-                onChange={handleImport}
-                className="hidden"
-              />
+              <section>
+                <div className="text-[9px] font-display text-muted tracking-wider mb-2 px-1">DANE</div>
+                <div className="grid grid-cols-2 gap-1.5">
+                  <button onClick={onExport} className="flex items-center justify-center gap-1.5 bg-surface border border-ink/8 rounded-lg py-3 font-display text-[10px] active:scale-95 transition-transform">
+                    <span>📥</span> Eksport
+                  </button>
+                  <button onClick={() => fileInputRef.current?.click()} className="flex items-center justify-center gap-1.5 bg-surface border border-ink/8 rounded-lg py-3 font-display text-[10px] active:scale-95 transition-transform">
+                    <span>📤</span> Import
+                  </button>
+                  <button onClick={handleShare} className="flex items-center justify-center gap-1.5 bg-surface border border-ink/8 rounded-lg py-3 font-display text-[10px] active:scale-95 transition-transform">
+                    <span>🔗</span> Udostępnij
+                  </button>
+                  <button
+                    onClick={() => { if (confirm("Zresetować dzisiejsze kroki?")) onReset(); }}
+                    className="flex items-center justify-center gap-1.5 bg-accent/10 border border-accent/20 rounded-lg py-3 font-display text-[10px] text-accent active:scale-95 transition-transform"
+                  >
+                    <span>🗑</span> Reset
+                  </button>
+                </div>
+              </section>
             </div>
+
+            <input ref={fileInputRef} type="file" accept=".json" onChange={handleImport} className="hidden" />
           </div>
         </Drawer.Content>
       </Drawer.Portal>
