@@ -169,46 +169,37 @@ function Index() {
 function Header({ onSettings, streak }: { onSettings: () => void; streak: number }) {
   return (
     <motion.header
-      initial={{ y: -20, opacity: 0 }}
+      initial={{ y: -10, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
-      transition={{ type: "spring", stiffness: 300, damping: 30 }}
-      className="sticky top-0 z-30 bg-bg/80 backdrop-blur-xl"
+      transition={{ duration: 0.3 }}
+      className="sticky top-0 z-30 bg-bg/70 backdrop-blur-2xl"
     >
-      <div className="h-[3px] flex">
-        <div className="flex-1 bg-polska-white" />
-        <div className="flex-1 bg-polska-red" />
-      </div>
-      <div className="mx-auto max-w-md px-4 py-2.5 flex items-center justify-between gap-3">
-        <div className="flex items-center gap-2.5 min-w-0">
-          <motion.div
-            whileTap={{ scale: 0.9, rotate: -5 }}
-            className="w-8 h-8 grid place-items-center font-display text-sm shrink-0 rounded-lg relative overflow-hidden"
-            style={{ background: "linear-gradient(180deg, #ffffff 50%, var(--polska-red) 50%)" }}
-            aria-hidden="true"
-          >
-            <span className="relative z-10 text-ink font-display" style={{ textShadow: "0 0 3px rgba(255,255,255,0.8)" }}>K</span>
-          </motion.div>
-          <div className="min-w-0">
-            <div className="font-display text-sm leading-none truncate">KROKI</div>
-            <div className="text-[9px] font-mono text-muted/70 leading-none mt-0.5">
-              {new Date().toLocaleDateString("pl-PL", { weekday: "short", day: "numeric", month: "short" })}
-            </div>
-          </div>
+      <div className="mx-auto max-w-md px-4 py-3 flex items-center justify-between">
+        <div className="flex items-center gap-2 min-w-0">
+          <div className="font-display text-[15px] leading-none">KROKI</div>
+          <span className="text-[9px] font-mono text-muted/60 mt-px">
+            {new Date().toLocaleDateString("pl-PL", { day: "numeric", month: "short" })}
+          </span>
         </div>
-        <div className="flex items-center gap-1.5 shrink-0">
+        <div className="flex items-center gap-2 shrink-0">
           {streak > 0 && (
-            <div className="bg-beer/15 border border-beer/30 px-1.5 py-0.5 rounded-full font-display text-[10px] text-beer flex items-center gap-0.5" data-compact>
-              🍺 {streak}
-            </div>
+            <motion.div
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              className="bg-beer/12 px-2 py-0.5 rounded-full font-display text-[10px] text-beer flex items-center gap-0.5"
+              data-compact
+            >
+              🔥{streak}
+            </motion.div>
           )}
           <motion.button
             whileTap={{ scale: 0.85 }}
             onClick={onSettings}
             aria-label="Ustawienia"
-            className="w-8 h-8 grid place-items-center rounded-lg bg-surface border border-ink/10"
+            className="w-8 h-8 grid place-items-center rounded-full bg-ink/5 active:bg-ink/10"
           >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-              <path d="M4 6h16M4 12h16M4 18h16" />
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+              <circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="19" r="1.5"/>
             </svg>
           </motion.button>
         </div>

@@ -9,19 +9,20 @@ interface Props {
   onTap?: () => void;
 }
 
-export function AnimatedRing({ steps, goal, size = 280, onTap }: Props) {
-  const stroke = 18;
+export function AnimatedRing({ steps, goal, size = 260, onTap }: Props) {
+  const stroke = 16;
   const radius = (size - stroke) / 2;
   const c = 2 * Math.PI * radius;
   const pct = Math.min(1, steps / Math.max(1, goal));
   const completed = pct >= 1;
+  const remaining = Math.max(0, goal - steps);
 
   const pulseScale = useMotionValue(1);
   const prevSteps = useRef(steps);
 
   useEffect(() => {
     if (steps > prevSteps.current && steps > 0) {
-      animate(pulseScale, [1, 1.02, 1], { duration: 0.2, ease: "easeOut" });
+      animate(pulseScale, [1, 1.015, 1], { duration: 0.15, ease: "easeOut" });
     }
     prevSteps.current = steps;
   }, [steps, pulseScale]);
@@ -30,136 +31,95 @@ export function AnimatedRing({ steps, goal, size = 280, onTap }: Props) {
 
   return (
     <motion.div
-      className="relative grid place-items-center cursor-pointer"
+      className="relative grid place-items-center"
       style={{ width: size, height: size, scale }}
       onTap={onTap}
       whileTap={{ scale: 0.97 }}
     >
-      {/* Polish eagle watermark in background */}
+      {/* Ambient glow — beer golden or success green */}
       <div
-        className="absolute inset-0 grid place-items-center pointer-events-none animate-eagle"
-        style={{ fontSize: size * 0.3 }}
-      >
-        🍺
-      </div>
-
-      {/* Ambient glow */}
-      <div
-        className="absolute rounded-full transition-opacity duration-500"
+        className="absolute rounded-full pointer-events-none"
         style={{
-          width: size + 20, height: size + 20,
-          background: "radial-gradient(circle, var(--polska-red) 0%, transparent 70%)",
-          opacity: pct > 0 ? 0.08 + pct * 0.07 : 0,
+          width: size + 24, height: size + 24,
+          background: completed
+            ? "radial-gradient(circle, var(--success) 0%, transparent 65%)"
+            : "radial-gradient(circle, var(--beer) 0%, transparent 65%)",
+          opacity: pct > 0 ? 0.06 + pct * 0.08 : 0,
+          transition: "opacity 0.6s ease",
         }}
       />
 
-      {/* Background plate — white like top of flag */}
+      {/* Background plate */}
       <div
         className="absolute rounded-full"
         style={{
           width: size, height: size,
           background: "var(--surface)",
-          border: "2px solid var(--ink)",
-          boxShadow: "4px 4px 0 0 var(--ink), inset 0 2px 12px rgba(0,0,0,0.03)",
+          boxShadow: "0 4px 24px rgba(0,0,0,0.06), inset 0 1px 4px rgba(255,255,255,0.5)",
+          border: "1.5px solid color-mix(in srgb, var(--ink) 12%, transparent)",
         }}
       />
 
-      {/* Completion glow */}
+      {/* Completion glow ring */}
       {completed && (
         <motion.div
-          className="absolute rounded-full"
-          animate={{ opacity: [0.3, 0.7, 0.3], scale: [1, 1.02, 1] }}
+          className="absolute rounded-full pointer-events-none"
+          animate={{ opacity: [0.2, 0.5, 0.2] }}
           transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
           style={{
-            width: size + 4, height: size + 4,
+            width: size + 6, height: size + 6,
             border: "2px solid var(--success)",
-            boxShadow: "0 0 20px 4px var(--success)",
+            boxShadow: "0 0 16px 3px var(--success)",
           }}
         />
       )}
 
       <svg width={size} height={size} className="relative -rotate-90">
         <defs>
-          {/* 🍺 Beer golden gradient + Polish red for completion */}
-          <linearGradient id="ring-pl-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor={completed ? "var(--success)" : "var(--beer)"} />
-            <stop offset="50%" stopColor={completed ? "#6ee7b7" : "#f59e0b"} />
-            <stop offset="100%" stopColor={completed ? "var(--success)" : "var(--polska-red)"} />
+          <linearGradient id="ring-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor={completed ? "#34d399" : "var(--beer)"} />
+            <stop offset="100%" stopColor={completed ? "#059669" : "var(--polska-red)"} />
           </linearGradient>
-          <filter id="ring-glow">
-            <feGaussianBlur stdDeviation="3" result="blur" />
-            <feMerge>
-              <feMergeNode in="blur" />
-              <feMergeNode in="SourceGraphic" />
-            </feMerge>
+          <filter id="arc-glow">
+            <feGaussianBlur stdDeviation="2.5" result="blur" />
+            <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
           </filter>
         </defs>
 
         {/* Track */}
         <circle
           cx={size / 2} cy={size / 2} r={radius}
-          fill="none" stroke="var(--bg)" strokeWidth={stroke} opacity={0.5}
+          fill="none" stroke="var(--ink)" strokeWidth={stroke} opacity={0.04}
         />
 
-        {/* Progress — biało-czerwony gradient */}
+        {/* Progress arc */}
         <motion.circle
           cx={size / 2} cy={size / 2} r={radius}
-          fill="none"
-          stroke="url(#ring-pl-gradient)"
-          strokeWidth={stroke}
-          strokeLinecap="round"
-          strokeDasharray={c}
-          filter={pct > 0.5 ? "url(#ring-glow)" : undefined}
+          fill="none" stroke="url(#ring-grad)" strokeWidth={stroke}
+          strokeLinecap="round" strokeDasharray={c}
+          filter={pct > 0.4 ? "url(#arc-glow)" : undefined}
           initial={false}
           animate={{ strokeDashoffset: c * (1 - pct) }}
-          transition={{ type: "spring", stiffness: 60, damping: 20 }}
+          transition={{ type: "spring", stiffness: 50, damping: 18 }}
         />
-
-        {/* Borders */}
-        <circle cx={size / 2} cy={size / 2} r={radius + stroke / 2} fill="none" stroke="var(--ink)" strokeWidth={2} />
-        <circle cx={size / 2} cy={size / 2} r={radius - stroke / 2} fill="none" stroke="var(--ink)" strokeWidth={2} />
-
-        {/* Progress dot */}
-        {pct > 0.02 && pct < 1 && (
-          <circle
-            cx={size / 2 + radius * Math.cos(Math.PI * 2 * pct - Math.PI / 2)}
-            cy={size / 2 + radius * Math.sin(Math.PI * 2 * pct - Math.PI / 2)}
-            r={stroke / 2 + 2}
-            fill="var(--polska-red)"
-            stroke="var(--ink)"
-            strokeWidth={2}
-          />
-        )}
       </svg>
 
-      {/* Center content */}
-      <div className="absolute inset-0 grid place-items-center">
+      {/* Center */}
+      <div className="absolute inset-0 grid place-items-center pointer-events-none">
         <div className="text-center">
-          <motion.div
-            initial={{ opacity: 0, y: 4 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="text-[10px] font-display tracking-widest text-muted uppercase"
-          >
-            Kroki
-          </motion.div>
           <CountUp
             value={steps}
-            className="block font-display text-[52px] sm:text-6xl tracking-tighter text-ink tabular-nums leading-none mt-1"
+            className="block font-display text-[48px] tracking-tight text-ink tabular-nums leading-none"
           />
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.3 }}
-            className="mt-2.5 inline-flex items-center gap-1.5 rounded-full px-2.5 py-1"
-            style={{
-              background: `linear-gradient(135deg, var(--polska-white) 0%, color-mix(in srgb, var(--polska-red) 15%, var(--surface)) 100%)`,
-              border: "1.5px solid var(--ink)",
-            }}
-          >
-            <span className="inline-block w-1.5 h-1.5 rounded-full bg-polska-red" />
-            <span className="font-display text-[11px]">{Math.round(pct * 100)}%</span>
-          </motion.div>
+          <div className="mt-1.5 text-[10px] font-mono text-muted">
+            {completed
+              ? <span className="text-success font-display">Cel ✓</span>
+              : `brakuje ${remaining.toLocaleString("pl-PL")}`}
+          </div>
+          <div className="mt-2 inline-flex items-center gap-1 bg-ink/5 rounded-full px-2 py-0.5">
+            <div className="w-1.5 h-1.5 rounded-full" style={{ background: completed ? "var(--success)" : "var(--beer)" }} />
+            <span className="text-[9px] font-display tabular-nums">{Math.round(pct * 100)}%</span>
+          </div>
         </div>
       </div>
     </motion.div>
