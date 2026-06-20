@@ -102,6 +102,9 @@ export function useStepCounter({ onStep }: Options = {}) {
         const a = e.accelerationIncludingGravity;
         if (!a || a.x == null || a.y == null || a.z == null) return;
         if (detectorRef.current.push(a.x, a.y, a.z)) {
+          // Flush pending steps from walking confirmation
+          const pending = detectorRef.current.flushPendingSteps();
+          for (let i = 0; i < pending; i++) registerStep();
           registerStep();
         }
       };
