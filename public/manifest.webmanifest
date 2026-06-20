@@ -1,0 +1,29 @@
+{
+  "name": "KROKI — Krokomierz",
+  "short_name": "KROKI",
+  "description": "Bezpłatny krokomierz w przeglądarce. Licz kroki bez aplikacji, bez konta, bez chmury.",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#faf7f2",
+  "theme_color": "#faf7f2",
+  "lang": "pl",
+  "categories": ["fitness", "health"],
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    },
+    {
+      "src": "/icon-192.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml"
+    },
+    {
+      "src": "/icon-512.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml"
+    }
+  ]
+}

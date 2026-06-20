@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <!-- Background -->
+  <rect width="1200" height="630" fill="#fff200"/>
+  <!-- Border frame -->
+  <rect x="20" y="20" width="1160" height="590" fill="none" stroke="#0a0a0a" stroke-width="8"/>
+  
+  <!-- Logo K -->
+  <rect x="80" y="180" width="200" height="200" fill="#fff200" stroke="#0a0a0a" stroke-width="6"/>
+  <text x="180" y="330" text-anchor="middle" font-family="Arial Black, sans-serif" font-size="140" font-weight="900" fill="#0a0a0a">K</text>
+  <circle cx="250" cy="200" r="20" fill="#ff3d00" stroke="#0a0a0a" stroke-width="4"/>
+
+  <!-- Title -->
+  <text x="340" y="270" font-family="Arial Black, sans-serif" font-size="90" font-weight="900" fill="#0a0a0a">KROKI</text>
+  
+  <!-- Subtitle -->
+  <text x="340" y="340" font-family="monospace" font-size="32" fill="#0a0a0a">Krokomierz w przeglądarce</text>
+  
+  <!-- Features -->
+  <text x="340" y="420" font-family="monospace" font-size="24" fill="#6b6b6b">✓ Bez aplikacji  ✓ Bez konta  ✓ Bez chmury</text>
+  
+  <!-- Accent bar -->
+  <rect x="80" y="500" width="400" height="12" fill="#ff3d00"/>
+  <rect x="80" y="500" width="400" height="12" fill="none" stroke="#0a0a0a" stroke-width="3"/>
+  
+  <!-- Decorative steps visualization -->
+  <rect x="800" y="350" width="60" height="180" fill="#ff3d00" stroke="#0a0a0a" stroke-width="3"/>
+  <rect x="880" y="280" width="60" height="250" fill="#ff3d00" stroke="#0a0a0a" stroke-width="3"/>
+  <rect x="960" y="200" width="60" height="330" fill="#ff3d00" stroke="#0a0a0a" stroke-width="3"/>
+  <rect x="1040" y="150" width="60" height="380" fill="#ff3d00" stroke="#0a0a0a" stroke-width="3"/>
+  
+  <!-- Goal line -->
+  <line x1="780" y1="250" x2="1120" y2="250" stroke="#0a0a0a" stroke-width="3" stroke-dasharray="10 6"/>
+  <text x="1125" y="256" font-family="monospace" font-size="16" fill="#0a0a0a">CEL</text>
+</svg>
