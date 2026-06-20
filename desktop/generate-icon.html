@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head><title>Generate KROKI icon PNG</title></head>
+<body>
+<h3>Kliknij "Generate" i pobierz icon.png — wrzuć go do folderu assets/</h3>
+<canvas id="c" width="256" height="256"></canvas>
+<br><button onclick="generate()">Generate & Download</button>
+<script>
+function generate() {
+  const c = document.getElementById('c');
+  const ctx = c.getContext('2d');
+  // Background
+  ctx.fillStyle = '#fffef8';
+  ctx.beginPath();
+  ctx.roundRect(0, 0, 256, 256, 48);
+  ctx.fill();
+  // Red bottom half
+  ctx.fillStyle = '#dc143c';
+  ctx.fillRect(0, 128, 256, 128);
+  // Round bottom corners
+  ctx.beginPath();
+  ctx.roundRect(0, 0, 256, 256, 48);
+  ctx.clip();
+  ctx.fillStyle = '#dc143c';
+  ctx.fillRect(0, 128, 256, 128);
+  // K letter
+  ctx.font = 'bold 120px Arial Black';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillStyle = '#1a1714';
+  ctx.fillText('K', 128, 128);
+  // Download
+  const link = document.createElement('a');
+  link.download = 'icon.png';
+  link.href = c.toDataURL('image/png');
+  link.click();
+}
+</script>
+</body>
+</html>
