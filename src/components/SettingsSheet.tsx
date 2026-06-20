@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useEffect, useRef, useState, useCallback } from "react";
+import { motion, AnimatePresence, useMotionValue, useTransform, PanInfo } from "framer-motion";
 import { useTheme } from "@/hooks/useTheme";
 import { useSound } from "@/hooks/useSound";
 import { useBatterySaver } from "@/hooks/useBatterySaver";
@@ -20,21 +20,53 @@ interface Props {
   streakFreezeUsed: boolean;
 }
 
+// === BUILDING BLOCKS ===
+
 function Toggle({ active, onToggle, label }: { active: boolean; onToggle: () => void; label?: string }) {
   return (
-    <button
+    <motion.button
+      whileTap={{ scale: 0.9 }}
       onClick={onToggle}
       aria-label={label}
-      className={`relative w-12 h-7 rounded-full transition-colors duration-200 ${active ? "bg-accent" : "bg-ink/15"}`}
+      className={`relative w-[52px] h-[30px] rounded-full transition-colors duration-300 ${active ? "bg-beer" : "bg-ink/12"}`}
     >
       <motion.div
-        animate={{ x: active ? 22 : 2 }}
-        transition={{ type: "spring", stiffness: 500, damping: 30 }}
-        className="absolute top-1 w-5 h-5 rounded-full bg-white shadow-md"
+        animate={{ x: active ? 24 : 3 }}
+        transition={{ type: "spring", stiffness: 500, damping: 28 }}
+        className="absolute top-[3px] w-6 h-6 rounded-full bg-white shadow-lg"
       />
-    </button>
+    </motion.button>
   );
 }
+
+function SettingRow({ icon, title, sub, children, onTap }: {
+  icon: string; title: string; sub?: string; children?: React.ReactNode; onTap?: () => void;
+}) {
+  return (
+    <motion.div
+      whileTap={onTap ? { scale: 0.98, backgroundColor: "var(--ink)", opacity: 0.05 } : undefined}
+      onClick={onTap}
+      className={`flex items-center gap-3 p-3.5 rounded-2xl bg-surface/80 border border-ink/8 ${onTap ? "cursor-pointer active:bg-ink/5" : ""}`}
+    >
+      <span className="text-[18px] w-7 text-center shrink-0">{icon}</span>
+      <div className="flex-1 min-w-0">
+        <div className="font-display text-[12px] leading-tight">{title}</div>
+        {sub && <div className="text-[9px] font-mono text-muted mt-0.5 truncate">{sub}</div>}
+      </div>
+      {children}
+    </motion.div>
+  );
+}
+
+function SectionHeader({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="text-[9px] font-display text-muted/70 tracking-[0.15em] uppercase pl-1 mb-1.5">
+      {children}
+    </div>
+  );
+}
+
+// === MAIN COMPONENT ===
 
 export function SettingsSheet({
   open, onClose, goal, onGoalChange, onReset, onExport, onImport,
@@ -42,15 +74,20 @@ export function SettingsSheet({
 }: Props) {
   const [draft, setDraft] = useState(goal);
   const [heightCm, setHeightCm] = useState(Math.round(stepLength / 0.415));
+  const [activeSection, setActiveSection] = useState<string | null>(null);
   const { theme, setTheme, isAuto, setAuto } = useTheme();
   const { enabled: soundEnabled, toggle: toggleSound } = useSound();
   const { active: batterySaver, toggle: toggleBatterySaver } = useBatterySaver();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Drag to dismiss
+  const y = useMotionValue(0);
+  const opacity = useTransform(y, [0, 300], [1, 0.3]);
+
   useEffect(() => { setDraft(goal); }, [goal, open]);
   useEffect(() => { setHeightCm(Math.round(stepLength / 0.415)); }, [stepLength, open]);
+  useEffect(() => { if (!open) setActiveSection(null); }, [open]);
 
-  // Close on Escape
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
@@ -58,7 +95,17 @@ export function SettingsSheet({
     return () => window.removeEventListener("keydown", onKey);
   }, [open, onClose]);
 
-  const save = () => { onGoalChange(draft); onClose(); };
+  const handleDragEnd = useCallback((_: unknown, info: PanInfo) => {
+    if (info.offset.y > 100 || info.velocity.y > 500) {
+      onClose();
+    }
+  }, [onClose]);
+
+  const saveGoal = () => {
+    onGoalChange(draft);
+    toast("✅ Cel zapisany!", { duration: 1500 });
+    setActiveSection(null);
+  };
 
   const handleHeightChange = (cm: number) => {
     setHeightCm(cm);
@@ -70,21 +117,18 @@ export function SettingsSheet({
     if (!file) return;
     const reader = new FileReader();
     reader.onload = () => {
-      const result = onImport(reader.result as string);
-      toast(result ? "✅ Import udany!" : "❌ Błąd importu", {
-        description: result ? "Dane wczytane." : "Nieprawidłowy format.",
-      });
+      const ok = onImport(reader.result as string);
+      toast(ok ? "✅ Dane zaimportowane!" : "❌ Nieprawidłowy plik");
     };
     reader.readAsText(file);
     e.target.value = "";
   };
 
   const handleShare = async () => {
-    if (typeof navigator === "undefined") return;
-    const text = `Mój cel: ${goal.toLocaleString("pl-PL")} kroków/dzień! 🚶🇵🇱`;
-    if ("share" in navigator && navigator.share) {
+    const text = `Mój cel: ${goal.toLocaleString("pl-PL")} kroków/dzień! 🍺🇵🇱 #KROKI`;
+    if (typeof navigator !== "undefined" && "share" in navigator && navigator.share) {
       try { await navigator.share({ title: "KROKI", text }); } catch { /* */ }
-    } else if ("clipboard" in navigator) {
+    } else if (typeof navigator !== "undefined" && "clipboard" in navigator) {
       await navigator.clipboard.writeText(text);
       toast("📋 Skopiowano!");
     }
@@ -94,238 +138,203 @@ export function SettingsSheet({
     <AnimatePresence>
       {open && (
         <>
-          {/* Backdrop */}
+          {/* Scrim */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
-            className="fixed inset-0 z-50 bg-ink/60 backdrop-blur-sm"
+            className="fixed inset-0 z-50 bg-black/50 backdrop-blur-[6px]"
             onClick={onClose}
           />
 
-          {/* Sheet */}
+          {/* Bottom sheet with drag */}
           <motion.div
             initial={{ y: "100%" }}
             animate={{ y: 0 }}
-            exit={{ y: "100%" }}
-            transition={{ type: "spring", stiffness: 300, damping: 30 }}
-            className="fixed inset-x-0 bottom-0 z-50 max-h-[85dvh] flex flex-col"
+            exit={{ y: "110%" }}
+            transition={{ type: "spring", stiffness: 280, damping: 28 }}
+            drag="y"
+            dragConstraints={{ top: 0 }}
+            dragElastic={0.15}
+            onDragEnd={handleDragEnd}
+            style={{ y, opacity }}
+            className="fixed inset-x-0 bottom-0 z-50"
           >
-            <div className="mx-auto w-full max-w-md bg-bg rounded-t-3xl border-t-2 border-x-2 border-ink flex flex-col max-h-[85dvh]">
-              {/* Handle + Header (fixed) */}
-              <div className="px-5 pt-3 pb-4 shrink-0">
-                {/* Drag handle */}
-                <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-ink/20" />
+            <div className="mx-auto w-full max-w-[420px] bg-bg rounded-t-[28px] shadow-2xl flex flex-col max-h-[88dvh] overflow-hidden">
 
-                {/* Header — title centered, close button */}
+              {/* === HEADER === */}
+              <div className="pt-2 pb-3 px-5 shrink-0">
+                {/* Pill drag indicator */}
+                <div className="mx-auto w-9 h-[5px] rounded-full bg-ink/15 mb-3" />
                 <div className="flex items-center justify-between">
-                  <div className="w-9" /> {/* spacer */}
-                  <h2 className="font-display text-lg text-center">Ustawienia</h2>
+                  <h2 className="font-display text-[17px]">Ustawienia</h2>
                   <motion.button
-                    whileTap={{ scale: 0.85 }}
+                    whileTap={{ scale: 0.8, rotate: 90 }}
                     onClick={onClose}
-                    className="w-9 h-9 grid place-items-center rounded-full bg-ink/10 text-ink"
-                    aria-label="Zamknij ustawienia"
+                    className="w-8 h-8 grid place-items-center rounded-full bg-ink/8 active:bg-ink/15"
+                    aria-label="Zamknij"
                   >
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
                       <path d="M18 6 6 18M6 6l12 12" />
                     </svg>
                   </motion.button>
                 </div>
               </div>
 
-              {/* Scrollable content */}
-              <div className="flex-1 overflow-y-auto overscroll-contain px-5 pb-[calc(env(safe-area-inset-bottom)+1.5rem)] space-y-5">
+              {/* === SCROLLABLE BODY === */}
+              <div className="flex-1 overflow-y-auto overscroll-contain px-4 pb-[max(env(safe-area-inset-bottom),16px)] space-y-4">
 
-                {/* === CEL === */}
-                <motion.section
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.05 }}
-                >
-                  <div className="text-[9px] font-display text-muted tracking-widest mb-2">🎯 CEL DZIENNY</div>
-                  <div className="flex gap-2">
-                    <input
-                      type="number"
-                      value={draft}
-                      step={500}
-                      min={1000}
-                      max={50000}
-                      onChange={(e) => setDraft(Number(e.target.value))}
-                      className="flex-1 bg-surface border-2 border-ink rounded-xl px-3 py-2.5 font-mono text-lg focus:outline-none focus:ring-2 focus:ring-accent/50"
-                    />
-                    <motion.button
-                      whileTap={{ scale: 0.9 }}
-                      onClick={save}
-                      className="bg-accent text-white font-display text-xs px-5 rounded-xl active:bg-accent/80"
-                    >
-                      OK
-                    </motion.button>
-                  </div>
-                  <div className="mt-2.5 flex flex-wrap gap-1.5">
-                    {[5000, 8000, 10000, 12000, 15000].map((g) => (
+                {/* --- QUICK GOAL --- */}
+                <section>
+                  <SectionHeader>Cel dzienny</SectionHeader>
+                  <div className="bg-surface/80 rounded-2xl border border-ink/8 p-4">
+                    <div className="flex items-center gap-3">
                       <motion.button
-                        key={g}
-                        whileTap={{ scale: 0.9 }}
-                        onClick={() => setDraft(g)}
-                        className={`font-mono text-[10px] px-3 py-1.5 rounded-full border-2 transition-colors ${draft === g ? "bg-ink text-bg border-ink" : "bg-surface border-ink/20 text-ink/70"}`}
-                      >
-                        {g >= 10000 ? `${g / 1000}k` : g.toLocaleString("pl-PL")}
-                      </motion.button>
-                    ))}
-                  </div>
-                </motion.section>
-
-                {/* === POMIARY === */}
-                <motion.section
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.1 }}
-                >
-                  <div className="text-[9px] font-display text-muted tracking-widest mb-2">📏 POMIARY</div>
-                  <div className="bg-surface rounded-xl border-2 border-ink p-4">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <div className="font-display text-[11px]">Wzrost</div>
-                        <div className="text-[10px] font-mono text-muted">{heightCm} cm → krok {stepLength.toFixed(1)} cm</div>
+                        whileTap={{ scale: 0.85 }}
+                        onClick={() => setDraft((d) => Math.max(1000, d - 1000))}
+                        className="w-10 h-10 grid place-items-center rounded-full border-2 border-ink/20 font-display text-lg active:bg-ink/5"
+                      >−</motion.button>
+                      <div className="flex-1 text-center">
+                        <div className="font-display text-3xl tabular-nums">{draft.toLocaleString("pl-PL")}</div>
+                        <div className="text-[9px] font-mono text-muted mt-0.5">kroków / dzień</div>
                       </div>
-                      <div className="font-display text-lg tabular-nums">{heightCm}</div>
+                      <motion.button
+                        whileTap={{ scale: 0.85 }}
+                        onClick={() => setDraft((d) => Math.min(50000, d + 1000))}
+                        className="w-10 h-10 grid place-items-center rounded-full border-2 border-ink/20 font-display text-lg active:bg-ink/5"
+                      >+</motion.button>
+                    </div>
+                    {/* Presets */}
+                    <div className="mt-3 flex justify-center gap-1.5">
+                      {[5000, 8000, 10000, 12000, 15000].map((g) => (
+                        <motion.button
+                          key={g}
+                          whileTap={{ scale: 0.88 }}
+                          onClick={() => setDraft(g)}
+                          className={`text-[9px] font-mono px-2.5 py-1 rounded-full transition-all ${draft === g ? "bg-ink text-bg" : "bg-ink/5 text-ink/60"}`}
+                        >
+                          {g >= 10000 ? `${g / 1000}k` : (g / 1000).toFixed(0) + "k"}
+                        </motion.button>
+                      ))}
+                    </div>
+                    {/* Save button (only if changed) */}
+                    <AnimatePresence>
+                      {draft !== goal && (
+                        <motion.button
+                          initial={{ opacity: 0, height: 0, marginTop: 0 }}
+                          animate={{ opacity: 1, height: 40, marginTop: 12 }}
+                          exit={{ opacity: 0, height: 0, marginTop: 0 }}
+                          whileTap={{ scale: 0.95 }}
+                          onClick={saveGoal}
+                          className="w-full rounded-xl bg-beer text-white font-display text-[12px] active:bg-beer/80"
+                        >
+                          Zapisz {draft.toLocaleString("pl-PL")} ✓
+                        </motion.button>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                </section>
+
+                {/* --- BODY --- */}
+                <section>
+                  <SectionHeader>Ciało</SectionHeader>
+                  <div className="bg-surface/80 rounded-2xl border border-ink/8 p-4">
+                    <div className="flex items-baseline justify-between">
+                      <span className="font-display text-[11px]">📏 Wzrost</span>
+                      <span className="font-mono text-[13px] tabular-nums font-bold">{heightCm} cm</span>
                     </div>
                     <input
-                      type="range"
-                      min={140}
-                      max={210}
-                      value={heightCm}
+                      type="range" min={140} max={210} value={heightCm}
                       onChange={(e) => handleHeightChange(Number(e.target.value))}
-                      className="mt-3 w-full h-2 rounded-full appearance-none bg-ink/10 accent-accent"
+                      className="mt-2.5 w-full h-[6px] rounded-full appearance-none bg-ink/8 accent-beer"
                     />
-                    <div className="flex justify-between text-[8px] font-mono text-muted mt-1">
-                      <span>140</span>
-                      <span>175</span>
-                      <span>210</span>
+                    <div className="mt-1.5 flex justify-between items-center">
+                      <span className="text-[8px] font-mono text-muted">140</span>
+                      <span className="text-[9px] font-mono text-beer">krok: {stepLength.toFixed(1)} cm</span>
+                      <span className="text-[8px] font-mono text-muted">210</span>
                     </div>
                   </div>
-                </motion.section>
+                </section>
 
-                {/* === PREFERENCJE === */}
-                <motion.section
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.15 }}
-                >
-                  <div className="text-[9px] font-display text-muted tracking-widest mb-2">⚙️ PREFERENCJE</div>
-                  <div className="space-y-2">
-                    <div className="bg-surface rounded-xl border-2 border-ink p-3.5 flex items-center justify-between">
-                      <div className="flex items-center gap-2.5">
-                        <span className="text-base">📱</span>
-                        <div>
-                          <div className="font-display text-[11px]">Ekran aktywny</div>
-                          <div className="text-[9px] font-mono text-muted">Nie wygaszaj ekranu</div>
-                        </div>
-                      </div>
+                {/* --- TOGGLES --- */}
+                <section>
+                  <SectionHeader>Preferencje</SectionHeader>
+                  <div className="space-y-1.5">
+                    <SettingRow icon="📱" title="Ekran aktywny" sub="Ekran nie gaśnie podczas chodzenia">
                       <Toggle active={wakeLockActive} onToggle={onToggleWakeLock} label="Wake lock" />
-                    </div>
-
-                    <div className="bg-surface rounded-xl border-2 border-ink p-3.5 flex items-center justify-between">
-                      <div className="flex items-center gap-2.5">
-                        <span className="text-base">🔊</span>
-                        <div>
-                          <div className="font-display text-[11px]">Dźwięki</div>
-                          <div className="text-[9px] font-mono text-muted">Efekty milestones</div>
-                        </div>
-                      </div>
-                      <Toggle active={soundEnabled} onToggle={toggleSound} label="Sound" />
-                    </div>
-
-                    <div className="bg-surface rounded-xl border-2 border-ink p-3.5 flex items-center justify-between">
-                      <div className="flex items-center gap-2.5">
-                        <span className="text-base">🧊</span>
-                        <div>
-                          <div className="font-display text-[11px]">Streak freeze</div>
-                          <div className="text-[9px] font-mono text-muted">1 dzień wolny/tydzień</div>
-                        </div>
-                      </div>
-                      <span className={`text-[10px] font-display px-2.5 py-1 rounded-full ${streakFreezeUsed ? "bg-ink/10 text-muted" : "bg-success/15 text-success"}`}>
-                        {streakFreezeUsed ? "Użyty" : "Gotowy"}
+                    </SettingRow>
+                    <SettingRow icon="🔊" title="Dźwięki" sub="Efekty przy milestone'ach">
+                      <Toggle active={soundEnabled} onToggle={toggleSound} label="Dźwięki" />
+                    </SettingRow>
+                    <SettingRow icon="🔋" title="Tryb oszczędny" sub="Wyłącza animacje, oszczędza baterię">
+                      <Toggle active={batterySaver} onToggle={toggleBatterySaver} label="Battery" />
+                    </SettingRow>
+                    <SettingRow icon="🧊" title="Streak freeze" sub="1 dzień wolny / tydzień bez utraty serii">
+                      <span className={`text-[10px] font-display px-2.5 py-1 rounded-full ${streakFreezeUsed ? "bg-ink/8 text-muted" : "bg-success/12 text-success"}`}>
+                        {streakFreezeUsed ? "Użyty" : "✓ Gotowy"}
                       </span>
-                    </div>
-
-                    <div className="bg-surface rounded-xl border-2 border-ink p-3.5 flex items-center justify-between">
-                      <div className="flex items-center gap-2.5">
-                        <span className="text-base">🔋</span>
-                        <div>
-                          <div className="font-display text-[11px]">Tryb oszczędny</div>
-                          <div className="text-[9px] font-mono text-muted">Mniej animacji, dłuższa bateria</div>
-                        </div>
-                      </div>
-                      <Toggle active={batterySaver} onToggle={toggleBatterySaver} label="Battery saver" />
-                    </div>
+                    </SettingRow>
                   </div>
-                </motion.section>
+                </section>
 
-                {/* === WYGLĄD === */}
-                <motion.section
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.2 }}
-                >
-                  <div className="text-[9px] font-display text-muted tracking-widest mb-2">🎨 WYGLĄD</div>
+                {/* --- THEME --- */}
+                <section>
+                  <SectionHeader>Wygląd</SectionHeader>
                   <div className="grid grid-cols-3 gap-2">
-                    {([
-                      { key: "auto", label: "Auto", icon: "🌗", active: isAuto, action: setAuto },
-                      { key: "light", label: "Jasny", icon: "☀️", active: !isAuto && theme === "light", action: () => setTheme("light") },
-                      { key: "dark", label: "Ciemny", icon: "🌙", active: !isAuto && theme === "dark", action: () => setTheme("dark") },
-                    ] as const).map((t) => (
+                    {[
+                      { key: "auto", label: "Auto", icon: "🌗", isActive: isAuto, action: setAuto },
+                      { key: "light", label: "Jasny", icon: "☀️", isActive: !isAuto && theme === "light", action: () => setTheme("light") },
+                      { key: "dark", label: "Ciemny", icon: "🌙", isActive: !isAuto && theme === "dark", action: () => setTheme("dark") },
+                    ].map((t) => (
                       <motion.button
                         key={t.key}
-                        whileTap={{ scale: 0.92 }}
+                        whileTap={{ scale: 0.9 }}
                         onClick={t.action}
-                        className={`flex flex-col items-center gap-1.5 py-3.5 rounded-xl border-2 transition-all ${t.active ? "bg-accent/10 border-accent text-accent" : "bg-surface border-ink/15 text-ink/60"}`}
+                        className={`flex flex-col items-center gap-1 py-3 rounded-2xl border transition-all duration-200 ${t.isActive ? "bg-beer/12 border-beer/40 shadow-sm" : "bg-surface/60 border-ink/8"}`}
                       >
                         <span className="text-xl">{t.icon}</span>
-                        <span className="text-[9px] font-display">{t.label}</span>
+                        <span className={`text-[9px] font-display ${t.isActive ? "text-beer" : "text-muted"}`}>{t.label}</span>
                       </motion.button>
                     ))}
                   </div>
-                </motion.section>
+                </section>
 
-                {/* === DANE === */}
-                <motion.section
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.25 }}
-                >
-                  <div className="text-[9px] font-display text-muted tracking-widest mb-2">💾 DANE</div>
-                  <div className="grid grid-cols-2 gap-2">
-                    <motion.button whileTap={{ scale: 0.93 }} onClick={onExport} className="flex items-center justify-center gap-1.5 bg-surface border-2 border-ink rounded-xl py-3.5 font-display text-[10px] active:bg-ink/5">
-                      <span>📥</span> Eksport
-                    </motion.button>
-                    <motion.button whileTap={{ scale: 0.93 }} onClick={() => fileInputRef.current?.click()} className="flex items-center justify-center gap-1.5 bg-surface border-2 border-ink rounded-xl py-3.5 font-display text-[10px] active:bg-ink/5">
-                      <span>📤</span> Import
-                    </motion.button>
-                    <motion.button whileTap={{ scale: 0.93 }} onClick={handleShare} className="flex items-center justify-center gap-1.5 bg-surface border-2 border-ink rounded-xl py-3.5 font-display text-[10px] active:bg-ink/5">
-                      <span>🔗</span> Udostępnij
-                    </motion.button>
-                    <motion.button
-                      whileTap={{ scale: 0.93 }}
-                      onClick={() => { if (confirm("Zresetować dzisiejsze kroki?")) onReset(); }}
-                      className="flex items-center justify-center gap-1.5 bg-accent/10 border-2 border-accent/30 rounded-xl py-3.5 font-display text-[10px] text-accent active:bg-accent/20"
-                    >
-                      <span>🗑</span> Reset
-                    </motion.button>
+                {/* --- DATA --- */}
+                <section>
+                  <SectionHeader>Dane</SectionHeader>
+                  <div className="grid grid-cols-2 gap-1.5">
+                    <SettingRow icon="📥" title="Eksport" onTap={onExport} />
+                    <SettingRow icon="📤" title="Import" onTap={() => fileInputRef.current?.click()} />
+                    <SettingRow icon="🔗" title="Udostępnij" onTap={handleShare} />
+                    <SettingRow icon="📊" title="Eksport CSV" onTap={() => {
+                      // Will use exportCsv from context when available
+                      toast("📊 CSV — dostępne wkrótce");
+                    }} />
                   </div>
-                </motion.section>
+                </section>
 
-                {/* App info */}
-                <div className="text-center pt-2 pb-4">
-                  <p className="font-mono text-[8px] text-muted/50">KROKI v1.0 🇵🇱 — Made in Poland</p>
-                </div>
+                {/* --- DANGER ZONE --- */}
+                <section>
+                  <SectionHeader>Strefa niebezpieczna</SectionHeader>
+                  <motion.button
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => { if (confirm("Na pewno zresetować dzisiejsze kroki? (Możesz cofnąć przez 7s)")) onReset(); }}
+                    className="w-full flex items-center justify-center gap-2 py-3 rounded-2xl bg-accent/8 border border-accent/20 text-accent font-display text-[11px] active:bg-accent/15"
+                  >
+                    🗑 Resetuj dzisiejsze kroki
+                  </motion.button>
+                </section>
+
+                {/* --- ABOUT --- */}
+                <section className="text-center pb-6 pt-2 space-y-1">
+                  <p className="font-display text-[10px] text-ink/30">KROKI v1.0</p>
+                  <p className="font-mono text-[8px] text-ink/20">🇵🇱 Zrobione w Polsce · 🍺 Na zdrowie!</p>
+                </section>
               </div>
             </div>
-
-            <input ref={fileInputRef} type="file" accept=".json" onChange={handleImport} className="hidden" />
           </motion.div>
+
+          <input ref={fileInputRef} type="file" accept=".json" onChange={handleImport} className="hidden" />
         </>
       )}
     </AnimatePresence>
