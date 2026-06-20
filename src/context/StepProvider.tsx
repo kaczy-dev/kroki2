@@ -155,9 +155,61 @@ export function StepProvider({ children }: { children: ReactNode }) {
     }
   }, [counter.stepsToday, hist.state.goal, hist.settings.stepLengthCm]);
 
+  // Auto-pause if no steps for 5 minutes while sensor active
+  const lastStepTimeRef = useRef(Date.now());
+  const autoPauseShownRef = useRef(false);
+  useEffect(() => {
+    if (counter.stepsToday > 0) {
+      lastStepTimeRef.current = Date.now();
+      autoPauseShownRef.current = false;
+    }
+  }, [counter.stepsToday]);
+
+  useEffect(() => {
+    const isActive = counter.status === "active" || counter.status === "demo";
+    if (!isActive || counter.paused) return;
+    const check = setInterval(() => {
+      const elapsed = Date.now() - lastStepTimeRef.current;
+      if (elapsed > 5 * 60 * 1000 && !autoPauseShownRef.current) {
+        autoPauseShownRef.current = true;
+        counter.togglePause();
+        toast("⏸ Auto-pauza", {
+          description: "Brak kroków od 5 min. Wznów gdy ruszysz.",
+          duration: 5000,
+        });
+        vibrate([30, 50, 30]);
+      }
+    }, 30000);
+    return () => clearInterval(check);
+  }, [counter.status, counter.paused, counter]);
+
+  // Lifetime distance milestones (every 10km)
+  const lastDistanceMilestoneRef = useRef(0);
+
   // Lifetime
   const lifetimeSteps =
     hist.state.history.reduce((sum, h) => sum + h.steps, 0) + hist.state.steps;
+
+  useEffect(() => {
+    if (!seededRef.current) return;
+    const totalKm = (lifetimeSteps * hist.settings.stepLengthCm) / 100 / 1000;
+    const milestone = Math.floor(totalKm / 10) * 10;
+    if (milestone > lastDistanceMilestoneRef.current && milestone > 0) {
+      lastDistanceMilestoneRef.current = milestone;
+      const cities: Record<number, string> = {
+        10: "Przeszedłeś długość Złotych Tarasów! 🏬",
+        20: "20 km — jak z Warszawy do Piaseczna! 🚶",
+        42: "Przeszedłeś maraton! 🏅",
+        50: "50 km — pół setki! 💪",
+        100: "100 km — SETKA! Legenda! 🏆",
+        200: "200 km — jak Warszawa→Łódź! 🗺",
+        500: "500 km — pół tysiąca! 🌟",
+      };
+      const msg = cities[milestone] || `${milestone} km łącznie! 🎉`;
+      toast(`🌍 ${msg}`, { duration: 6000 });
+      vibrate([50, 30, 50, 30, 100]);
+    }
+  }, [lifetimeSteps, hist.settings.stepLengthCm]);
 
   // Days above 5k in last 7
   const daysAbove5k = hist.last7.filter((d) => d.steps >= 5000).length;

@@ -6,9 +6,10 @@ interface Props {
   steps: number;
   goal: number;
   size?: number;
+  onTap?: () => void;
 }
 
-export function AnimatedRing({ steps, goal, size = 280 }: Props) {
+export function AnimatedRing({ steps, goal, size = 280, onTap }: Props) {
   const stroke = 18;
   const radius = (size - stroke) / 2;
   const c = 2 * Math.PI * radius;
@@ -34,8 +35,10 @@ export function AnimatedRing({ steps, goal, size = 280 }: Props) {
 
   return (
     <motion.div
-      className="relative grid place-items-center"
+      className="relative grid place-items-center cursor-pointer"
       style={{ width: size, height: size, scale }}
+      onTap={onTap}
+      whileTap={{ scale: 0.97 }}
     >
       {/* Outer glow — subtle ambient */}
       <div

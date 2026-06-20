@@ -10,6 +10,8 @@ import { GoalCelebration } from "@/components/GoalCelebration";
 import { ActiveSession } from "@/components/ActiveSession";
 import { DailyRecord } from "@/components/DailyRecord";
 import { QuickStats } from "@/components/QuickStats";
+import { SmartInsights } from "@/components/SmartInsights";
+import { PWAPrompt, OfflineIndicator } from "@/components/PWAPrompt";
 import { useState, useMemo, useEffect, useRef } from "react";
 
 export const Route = createFileRoute("/")({
@@ -71,9 +73,17 @@ function Index() {
         animate="show"
         className="mx-auto max-w-md px-4 py-5 space-y-5 pb-28"
       >
-        {/* Hero ring */}
+        {/* Hero ring — tap to start sensor */}
         <motion.div variants={fadeUp} className="flex justify-center pt-1">
-          <AnimatedRing steps={ctx.stepsToday} goal={ctx.goal} size={280} />
+          <AnimatedRing
+            steps={ctx.stepsToday}
+            goal={ctx.goal}
+            size={280}
+            onTap={() => {
+              if (ctx.status === "idle") ctx.start();
+              else if (ctx.status === "manual") ctx.addManualStep(1);
+            }}
+          />
         </motion.div>
 
         {/* Onboarding prompt */}
@@ -115,6 +125,17 @@ function Index() {
 
         {/* New daily record */}
         <DailyRecord stepsToday={ctx.stepsToday} history={ctx.history} />
+
+        {/* Smart insights — forecast, comparisons, nudges */}
+        <SmartInsights
+          stepsToday={ctx.stepsToday}
+          goal={ctx.goal}
+          streak={ctx.streak}
+          yesterdaySteps={ctx.yesterdaySteps}
+          history={ctx.history}
+          cadence={ctx.cadence}
+          status={ctx.status}
+        />
 
         {/* Quick stats link */}
         {ctx.lifetimeSteps > 0 && (
@@ -206,6 +227,9 @@ function Index() {
         goal={ctx.goal}
         onDismiss={() => setShowCelebration(false)}
       />
+
+      <PWAPrompt />
+      <OfflineIndicator />
     </div>
     </PageTransition>
   );
