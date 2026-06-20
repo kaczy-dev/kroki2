@@ -25,7 +25,7 @@
   --bg: #fefefe;
   --ink: #1b1b1b;
   --accent: #dc143c;
-  --surface: #f8f8f8;
+  --surface: #f0f0f0;
   --success: #2e7d32;
   --muted: #6e6e6e;
   --warning: #e6a817;
@@ -41,7 +41,7 @@
   --bg: #0d0d0d;
   --ink: #f0f0f0;
   --accent: #ef4444;
-  --surface: #1a1a1a;
+  --surface: #1f1f1f;
   --success: #4ade80;
   --muted: #8a8a8a;
   --warning: #fbbf24;
@@ -102,7 +102,7 @@
 }
 
 @utility brut-border {
-  border: 2.5px solid var(--ink);
+  border: 2px solid var(--ink);
 }
 @utility brut-shadow {
   box-shadow: 5px 5px 0 0 var(--ink);
@@ -117,7 +117,7 @@
   background: var(--surface);
   border: 2px solid var(--ink);
   border-radius: 6px;
-  box-shadow: 4px 4px 0 0 var(--ink);
+  box-shadow: 3px 3px 0 0 var(--ink);
   transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
 }
 @utility press {
