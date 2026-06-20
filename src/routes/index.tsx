@@ -13,6 +13,8 @@ import { QuickStats } from "@/components/QuickStats";
 import { SmartInsights } from "@/components/SmartInsights";
 import { MoodAvatar } from "@/components/MoodAvatar";
 import { DistanceFunFact } from "@/components/DistanceFunFact";
+import { BackgroundStepsBanner } from "@/components/BackgroundStepsBanner";
+import { BackgroundInfo } from "@/components/BackgroundInfo";
 import { PWAPrompt, OfflineIndicator } from "@/components/PWAPrompt";
 import { useState, useMemo, useEffect, useRef } from "react";
 
@@ -162,6 +164,19 @@ function Index() {
         <ActiveSession
           active={ctx.status === "active" || ctx.status === "demo" || ctx.status === "manual"}
           paused={ctx.paused}
+        />
+
+        {/* Background steps recovery banner */}
+        <BackgroundStepsBanner
+          backgroundSteps={ctx.backgroundSteps}
+          onAccept={ctx.acceptBackgroundSteps}
+          onDismiss={ctx.dismissBackgroundSteps}
+        />
+
+        {/* Background mode info */}
+        <BackgroundInfo
+          sensorActive={ctx.status === "active" || ctx.status === "demo"}
+          wakeLockActive={ctx.wakeLockActive}
         />
 
         {/* New daily record */}

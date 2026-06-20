@@ -12,12 +12,15 @@ interface Ctx {
   stepsToday: number;
   cadence: number;
   regularity: number;
+  backgroundSteps: number;
   start: () => void;
   stop: () => void;
   startManual: () => void;
   startDemo: () => void;
   togglePause: () => void;
   addManualStep: (n?: number) => void;
+  acceptBackgroundSteps: () => void;
+  dismissBackgroundSteps: () => void;
   // history
   goal: number;
   history: HistoryEntry[];
@@ -262,12 +265,15 @@ export function StepProvider({ children }: { children: ReactNode }) {
     stepsToday: counter.stepsToday,
     cadence: counter.cadence,
     regularity: counter.regularity,
+    backgroundSteps: counter.backgroundSteps,
     start: counter.start,
     stop: counter.stop,
     startManual: counter.startManual,
     startDemo: counter.startDemo,
     togglePause: counter.togglePause,
     addManualStep: counter.addManualStep,
+    acceptBackgroundSteps: counter.acceptBackgroundSteps,
+    dismissBackgroundSteps: counter.dismissBackgroundSteps,
     goal: hist.state.goal,
     history: hist.state.history,
     last7: hist.last7,
