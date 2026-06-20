@@ -9,6 +9,7 @@ import { PageTransition } from "@/components/PageTransition";
 import { GoalCelebration } from "@/components/GoalCelebration";
 import { MoodAvatar } from "@/components/MoodAvatar";
 import { SmartInsights } from "@/components/SmartInsights";
+import { ActivityIndicator } from "@/components/ActivityIndicator";
 import { BackgroundStepsBanner } from "@/components/BackgroundStepsBanner";
 import { PWAPrompt, OfflineIndicator } from "@/components/PWAPrompt";
 import { useState, useMemo, useEffect, useRef } from "react";
@@ -94,6 +95,9 @@ function Index() {
             <MetricsGrid steps={ctx.stepsToday} cadence={ctx.cadence} />
           </motion.div>
         )}
+
+        {/* Activity type indicator (walk/brisk/run) */}
+        <ActivityIndicator cadence={ctx.cadence} />
 
         {/* Smart insights (max 2, contextual) */}
         <SmartInsights

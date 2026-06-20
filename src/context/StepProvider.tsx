@@ -164,6 +164,37 @@ export function StepProvider({ children }: { children: ReactNode }) {
     }
   }, [counter.stepsToday, hist.state.goal, hist.settings.stepLengthCm]);
 
+  // #8 Hydration reminder — every 2000 steps
+  const lastHydrationRef = useRef(0);
+  useEffect(() => {
+    const milestone = Math.floor(counter.stepsToday / 2000);
+    if (milestone > lastHydrationRef.current && counter.stepsToday > 0) {
+      lastHydrationRef.current = milestone;
+      if (milestone > 0) {
+        toast("🥤 Pamiętaj o wodzie!", { description: "Każde 2k kroków = czas na łyk!", duration: 3000 });
+      }
+    }
+  }, [counter.stepsToday]);
+
+  // #9 Posture check — if no steps for 30 min during day
+  const lastPostureCheckRef = useRef(Date.now());
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const check = setInterval(() => {
+      const now = new Date();
+      const hour = now.getHours();
+      if (hour < 8 || hour > 22) return; // Only during waking hours
+      const elapsed = Date.now() - lastStepTimeRef.current;
+      const sinceLastCheck = Date.now() - lastPostureCheckRef.current;
+      if (elapsed > 30 * 60 * 1000 && sinceLastCheck > 30 * 60 * 1000 && counter.stepsToday > 0) {
+        lastPostureCheckRef.current = Date.now();
+        toast("🧘 Czas się ruszyć!", { description: "30 min bez ruchu — wstań i przeciągnij się!", duration: 4000 });
+        vibrate([20, 30, 20]);
+      }
+    }, 60000); // Check every minute
+    return () => clearInterval(check);
+  }, [counter.stepsToday]);
+
   // Auto-pause if no steps for 5 minutes while sensor active
   const lastStepTimeRef = useRef(Date.now());
   const autoPauseShownRef = useRef(false);

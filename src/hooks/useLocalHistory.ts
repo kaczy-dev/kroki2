@@ -275,9 +275,23 @@ export function useLocalHistory() {
     });
   }, []);
 
+  // #18 Export CSV
+  const exportCsv = useCallback(() => {
+    const rows = ["Data,Kroki,Cel"];
+    state.history.forEach((h) => rows.push(`${h.date},${h.steps},${state.goal}`));
+    rows.push(`${state.today},${state.steps},${state.goal}`);
+    const blob = new Blob([rows.join("\n")], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `kroki-${todayKey()}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }, [state]);
+
   return {
     state, settings, ready, updateSteps, setGoal, resetToday,
-    exportJson, importJson, streak, last7, yesterdaySteps,
+    exportJson, exportCsv, importJson, streak, last7, yesterdaySteps,
     setStepLength, streakFreezeUsed, editHistoryDay,
   };
 }

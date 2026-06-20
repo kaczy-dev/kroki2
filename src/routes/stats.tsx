@@ -7,6 +7,9 @@ import { CountUp } from "@/components/CountUp";
 import { PageTransition } from "@/components/PageTransition";
 import { YearHeatmap } from "@/components/YearHeatmap";
 import { EditHistoryModal } from "@/components/EditHistoryModal";
+import { suggestGoal } from "@/lib/smart-goals";
+import { getWeeklyReportData, shareWeeklyReport } from "@/lib/weekly-report";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/stats")({
   head: () => ({
@@ -107,6 +110,22 @@ function StatsPage() {
           </div>
         )}
 
+        {/* Smart goal suggestion */}
+        <GoalSuggestion history={ctx.history} currentGoal={ctx.goal} onAccept={ctx.setGoal} />
+
+        {/* Weekly report share button */}
+        <motion.button
+          whileTap={{ scale: 0.95 }}
+          onClick={async () => {
+            const data = getWeeklyReportData(ctx.history, ctx.stepsToday, ctx.goal, ctx.stepLength);
+            const ok = await shareWeeklyReport(data);
+            if (ok) toast("📸 Raport gotowy!");
+          }}
+          className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-beer/10 border border-beer/25 font-display text-[11px] text-beer active:bg-beer/20"
+        >
+          <span>📊</span> Udostępnij raport tygodnia
+        </motion.button>
+
         {/* Chart */}
         <StatsChart history={ctx.history} todayKey={todayKey} todaySteps={ctx.stepsToday} goal={ctx.goal} />
 
@@ -163,5 +182,33 @@ function StatsPage() {
       />
     </div>
     </PageTransition>
+  );
+}
+
+function GoalSuggestion({ history, currentGoal, onAccept }: { history: { date: string; steps: number }[]; currentGoal: number; onAccept: (g: number) => void }) {
+  const suggestion = useMemo(() => suggestGoal(history, currentGoal), [history, currentGoal]);
+
+  if (suggestion.suggested === currentGoal && !suggestion.reason.includes("trend")) return null;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      className="rounded-xl bg-surface border border-ink/10 p-3 flex items-center gap-3"
+    >
+      <span className="text-lg">💡</span>
+      <div className="flex-1 min-w-0">
+        <div className="text-[10px] font-mono text-ink/70 leading-snug">{suggestion.reason}</div>
+      </div>
+      {suggestion.suggested !== currentGoal && (
+        <button
+          onClick={() => onAccept(suggestion.suggested)}
+          className="shrink-0 text-[9px] font-display bg-beer/15 text-beer px-2 py-1 rounded-full border border-beer/25 active:scale-95"
+          data-compact
+        >
+          {(suggestion.suggested / 1000).toFixed(0)}k →
+        </button>
+      )}
+    </motion.div>
   );
 }
