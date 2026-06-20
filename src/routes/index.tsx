@@ -11,6 +11,8 @@ import { ActiveSession } from "@/components/ActiveSession";
 import { DailyRecord } from "@/components/DailyRecord";
 import { QuickStats } from "@/components/QuickStats";
 import { SmartInsights } from "@/components/SmartInsights";
+import { MoodAvatar } from "@/components/MoodAvatar";
+import { DistanceFunFact } from "@/components/DistanceFunFact";
 import { PWAPrompt, OfflineIndicator } from "@/components/PWAPrompt";
 import { useState, useMemo, useEffect, useRef } from "react";
 
@@ -48,17 +50,42 @@ function Index() {
 
   const motivation = useMemo(() => {
     const hour = new Date().getHours();
-    // Context-aware messages based on time of day
-    if (hour < 7) return "Wczesny spacer? Szacunek! 🌅";
+    // 🇵🇱 Polskie przysłowia i śmieszne motywacje
+    if (hour < 7) {
+      const msgs = [
+        "Kto rano wstaje, temu kroki rosną! 🌅",
+        "O tej porze? Szacunek, bohaterze! 🦅",
+        "Nawet orzeł jeszcze śpi... ale nie Ty! 💪",
+      ];
+      return msgs[Math.floor(Math.random() * msgs.length)];
+    }
     if (hour < 12) {
-      const msgs = ["Ruszaj się od rana 💪", "Poranny spacer = dobry dzień ☀️", "Krok po kroku do celu 🎯"];
+      const msgs = [
+        "Bez pracy nie ma kroków! 🇵🇱",
+        "Polak potrafi — nawet przed śniadaniem! 💪",
+        "Jak Kopernik ruszał ziemię, Ty ruszaj nogi! 🌍",
+        "Poranny spacer = złoto! ☀️",
+        "Husaria nie siedziała na kanapie! ⚔️",
+      ];
       return msgs[Math.floor(Math.random() * msgs.length)];
     }
     if (hour < 18) {
-      const msgs = ["Świetnie Ci idzie! 🚶", "Połowa dnia — rusz się! ⚡", "Spacer czyni cuda ✨"];
+      const msgs = [
+        "Nie ma że boli — kroki same się nie zrobią! 🚶",
+        "Więcej chodzisz niż Jagiełło pod Grunwaldem! 🗡",
+        "Polak potrafi i 10k da radę! 🇵🇱",
+        "Spacer > scrollowanie 📱",
+        "Twoje nogi > samochód 🚗💨",
+      ];
       return msgs[Math.floor(Math.random() * msgs.length)];
     }
-    const msgs = ["Wieczorny spacer relaksuje 🌙", "Jeszcze kilka kroków! 🔥", "Zakończ dzień aktywnie 🌿"];
+    const msgs = [
+      "Wieczorny spacer jak polski zachód słońca 🌅",
+      "Jeszcze trochę i będzie rekord! 🏆",
+      "Kto nie chodzi, ten nie żyje — ludowe 🌿",
+      "Dobranoc? Nie! Jeszcze kilka kroków! 🌙",
+      "Jutro podziękujesz sobie za dziś 💪",
+    ];
     return msgs[Math.floor(Math.random() * msgs.length)];
   }, []);
 
@@ -116,6 +143,20 @@ function Index() {
         <motion.div variants={fadeUp}>
           <MetricsGrid steps={ctx.stepsToday} cadence={ctx.cadence} />
         </motion.div>
+
+        {/* 🇵🇱 Mood Avatar — zmienia się z progressem */}
+        {ctx.stepsToday > 0 && (
+          <motion.div variants={fadeUp}>
+            <MoodAvatar steps={ctx.stepsToday} goal={ctx.goal} />
+          </motion.div>
+        )}
+
+        {/* Polskie porównanie dystansu */}
+        {ctx.stepsToday > 0 && (
+          <motion.div variants={fadeUp}>
+            <DistanceFunFact steps={ctx.stepsToday} stepLengthCm={ctx.stepLength} />
+          </motion.div>
+        )}
 
         {/* Active session timer */}
         <ActiveSession

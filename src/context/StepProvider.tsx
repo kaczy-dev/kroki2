@@ -198,13 +198,16 @@ export function StepProvider({ children }: { children: ReactNode }) {
     if (milestone > lastDistanceMilestoneRef.current && milestone > 0) {
       lastDistanceMilestoneRef.current = milestone;
       const cities: Record<number, string> = {
-        10: "Przeszedłeś długość Złotych Tarasów! 🏬",
-        20: "20 km — jak z Warszawy do Piaseczna! 🚶",
-        42: "Przeszedłeś maraton! 🏅",
-        50: "50 km — pół setki! 💪",
-        100: "100 km — SETKA! Legenda! 🏆",
-        200: "200 km — jak Warszawa→Łódź! 🗺",
-        500: "500 km — pół tysiąca! 🌟",
+        10: "10 km — jak z Centrum na Mokotów! 🏙️",
+        20: "20 km — przeszedłeś Trasę Łazienkowską! 🌳",
+        42: "MARATON! Polska GÓRA! 🏅🇵🇱",
+        50: "50 km — pół setki! Husaria by się nie wstydziła! ⚔️",
+        100: "100 km — SETKA! Jak z Warszawy do Radomia! 🦅",
+        150: "150 km — jak Warszawa → Łódź pieszo! 🗺️",
+        200: "200 km — jak z Krakowa do Zakopanego i z powrotem! 🏔️",
+        300: "300 km — właśnie przeszedłeś długość polskiego wybrzeża... prawie! 🌊",
+        500: "500 km — pół tysiąca! Legenda spacerów! 🌟",
+        1000: "1000 km — TYSIĄC! Jak z Gdańska do Zakopanego! 🇵🇱🦅",
       };
       const msg = cities[milestone] || `${milestone} km łącznie! 🎉`;
       toast(`🌍 ${msg}`, { duration: 6000 });

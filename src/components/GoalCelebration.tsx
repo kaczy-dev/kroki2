@@ -88,18 +88,26 @@ export function GoalCelebration({ show, steps, goal, onDismiss }: Props) {
               transition={{ type: "spring", stiffness: 200, damping: 12, delay: 0.3 }}
               className="text-7xl mb-3"
             >
-              🏆
+              🦅
             </motion.div>
 
-            {/* Title with stagger */}
+            {/* Title — POLSKA GÓRA! */}
             <motion.h2
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.4 }}
-              className="font-display text-2xl text-ink"
+              className="font-display text-2xl text-polska-red"
             >
-              Cel osiągnięty!
+              POLSKA GÓRA!
             </motion.h2>
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.5 }}
+              className="font-display text-sm text-ink/70 mt-1"
+            >
+              Cel osiągnięty! 🇵🇱🇵🇱🇵🇱
+            </motion.p>
 
             {/* Steps display */}
             <motion.div
@@ -117,9 +125,9 @@ export function GoalCelebration({ show, steps, goal, onDismiss }: Props) {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.7 }}
               onClick={dismiss}
-              className="mt-5 brut-border press bg-accent text-surface font-display text-sm px-6 py-2.5 inline-block"
+              className="mt-5 brut-border press bg-polska-red text-surface font-display text-sm px-6 py-2.5 inline-block"
             >
-              SUPER! 🎉
+              BIAŁO-CZERWONI! 🇵🇱
             </motion.button>
           </motion.div>
         </motion.div>
