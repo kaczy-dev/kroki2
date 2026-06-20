@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useRef, type ReactNode } from "react";
+import { createContext, useContext, useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { useStepCounter, type SensorStatus } from "@/hooks/useStepCounter";
 import { useLocalHistory, type HistoryEntry } from "@/hooks/useLocalHistory";
 import { useWakeLock } from "@/hooks/useWakeLock";
@@ -136,6 +136,10 @@ export function StepProvider({ children }: { children: ReactNode }) {
         toast(messages[milestone], { duration: 3000 });
         vibrate([20, 20, 40]);
       }
+      // Preload confetti at 75% so it's ready for goal hit
+      if (milestone >= 75) {
+        import("canvas-confetti").catch(() => {});
+      }
     }
   }, [counter.stepsToday, hist.state.goal]);
 
@@ -252,12 +256,36 @@ export function StepProvider({ children }: { children: ReactNode }) {
     if (goalNewlyHit) fireConfetti();
   }, [counter.stepsToday, hist.state.goal, hist.streak, lifetimeSteps, daysAbove5k, hist.state.history]);
 
-  const resetTodayAll = () => {
+  // Undo reset — keep last value for 8 seconds
+  const [lastResetValue, setLastResetValue] = useState<number | null>(null);
+  const undoTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const resetTodayAll = useCallback(() => {
+    const prev = counter.stepsToday;
+    setLastResetValue(prev);
     counter.reset();
     hist.resetToday();
     lastMilestoneRef.current = 0;
     lastGoalMilestoneRef.current = 0;
-  };
+
+    // Clear previous undo timer
+    if (undoTimerRef.current) clearTimeout(undoTimerRef.current);
+    undoTimerRef.current = setTimeout(() => setLastResetValue(null), 8000);
+
+    toast("🗑 Reset!", {
+      description: `${prev.toLocaleString("pl-PL")} kroków usunięte`,
+      action: {
+        label: "Cofnij",
+        onClick: () => {
+          counter.setSteps(prev);
+          hist.updateSteps(prev);
+          setLastResetValue(null);
+          toast("↩️ Przywrócono!");
+        },
+      },
+      duration: 7000,
+    });
+  }, [counter, hist]);
 
   const value: Ctx = {
     status: counter.status,

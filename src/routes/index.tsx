@@ -7,14 +7,9 @@ import { SensorButton } from "@/components/SensorButton";
 import { SettingsSheet } from "@/components/SettingsSheet";
 import { PageTransition } from "@/components/PageTransition";
 import { GoalCelebration } from "@/components/GoalCelebration";
-import { ActiveSession } from "@/components/ActiveSession";
-import { DailyRecord } from "@/components/DailyRecord";
-import { QuickStats } from "@/components/QuickStats";
-import { SmartInsights } from "@/components/SmartInsights";
 import { MoodAvatar } from "@/components/MoodAvatar";
-import { DistanceFunFact } from "@/components/DistanceFunFact";
+import { SmartInsights } from "@/components/SmartInsights";
 import { BackgroundStepsBanner } from "@/components/BackgroundStepsBanner";
-import { BackgroundInfo } from "@/components/BackgroundInfo";
 import { PWAPrompt, OfflineIndicator } from "@/components/PWAPrompt";
 import { useState, useMemo, useEffect, useRef } from "react";
 
@@ -30,10 +25,10 @@ export const Route = createFileRoute("/")({
 
 const stagger = {
   hidden: { opacity: 0 },
-  show: { opacity: 1, transition: { staggerChildren: 0.08 } },
+  show: { opacity: 1, transition: { staggerChildren: 0.06 } },
 };
 const fadeUp = {
-  hidden: { opacity: 0, y: 16 },
+  hidden: { opacity: 0, y: 12 },
   show: { opacity: 1, y: 0 },
 };
 
@@ -52,44 +47,17 @@ function Index() {
 
   const motivation = useMemo(() => {
     const hour = new Date().getHours();
-    // 🇵🇱 Polskie przysłowia i śmieszne motywacje
-    if (hour < 7) {
-      const msgs = [
-        "Kto rano wstaje, temu kroki rosną! 🌅",
-        "O tej porze? Szacunek, bohaterze! 🦅",
-        "Nawet orzeł jeszcze śpi... ale nie Ty! 💪",
-      ];
-      return msgs[Math.floor(Math.random() * msgs.length)];
-    }
-    if (hour < 12) {
-      const msgs = [
-        "Bez pracy nie ma kroków! 🇵🇱",
-        "Polak potrafi — nawet przed śniadaniem! 💪",
-        "Jak Kopernik ruszał ziemię, Ty ruszaj nogi! 🌍",
-        "Poranny spacer = złoto! ☀️",
-        "Husaria nie siedziała na kanapie! ⚔️",
-      ];
-      return msgs[Math.floor(Math.random() * msgs.length)];
-    }
-    if (hour < 18) {
-      const msgs = [
-        "Nie ma że boli — kroki same się nie zrobią! 🚶",
-        "Więcej chodzisz niż Jagiełło pod Grunwaldem! 🗡",
-        "Polak potrafi i 10k da radę! 🇵🇱",
-        "Spacer > scrollowanie 📱",
-        "Twoje nogi > samochód 🚗💨",
-      ];
-      return msgs[Math.floor(Math.random() * msgs.length)];
-    }
-    const msgs = [
-      "Wieczorny spacer jak polski zachód słońca 🌅",
-      "Jeszcze trochę i będzie rekord! 🏆",
-      "Kto nie chodzi, ten nie żyje — ludowe 🌿",
-      "Dobranoc? Nie! Jeszcze kilka kroków! 🌙",
-      "Jutro podziękujesz sobie za dziś 💪",
-    ];
-    return msgs[Math.floor(Math.random() * msgs.length)];
+    const all = hour < 7
+      ? ["Kto rano wstaje, temu kroki rosną! 🌅", "Nawet orzeł jeszcze śpi... ale nie Ty! 💪"]
+      : hour < 12
+      ? ["Bez pracy nie ma kroków! 🇵🇱", "Husaria nie siedziała na kanapie! ⚔️", "Poranny spacer = złoto! ☀️"]
+      : hour < 18
+      ? ["Polak potrafi i 10k da radę! 🇵🇱", "Spacer > scrollowanie 📱", "Twoje nogi > samochód 🚗💨"]
+      : ["Wieczorny spacer jak polski zachód słońca 🌅", "Kto nie chodzi, ten nie żyje — ludowe 🌿", "Jutro podziękujesz sobie za dziś 💪"];
+    return all[Math.floor(Math.random() * all.length)];
   }, []);
+
+  const isActive = ctx.status === "active" || ctx.status === "demo" || ctx.status === "manual";
 
   return (
     <PageTransition>
@@ -100,14 +68,14 @@ function Index() {
         variants={stagger}
         initial="hidden"
         animate="show"
-        className="mx-auto max-w-md px-4 py-5 space-y-5 pb-28"
+        className="mx-auto max-w-md px-4 py-4 space-y-4 pb-24"
       >
-        {/* Hero ring — tap to start sensor */}
-        <motion.div variants={fadeUp} className="flex justify-center pt-1">
+        {/* Hero ring */}
+        <motion.div variants={fadeUp} className="flex justify-center">
           <AnimatedRing
             steps={ctx.stepsToday}
             goal={ctx.goal}
-            size={280}
+            size={260}
             onTap={() => {
               if (ctx.status === "idle") ctx.start();
               else if (ctx.status === "manual") ctx.addManualStep(1);
@@ -115,74 +83,19 @@ function Index() {
           />
         </motion.div>
 
-        {/* Onboarding prompt */}
-        <AnimatePresence mode="wait">
-          {ctx.stepsToday === 0 && ctx.status === "idle" && (
-            <motion.div
-              key="onboard"
-              initial={{ opacity: 0, y: 8, scale: 0.97 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: -8, scale: 0.97 }}
-              transition={{ type: "spring", stiffness: 300, damping: 26 }}
-              className="brut-card p-4 text-center"
-            >
-              <motion.div
-                animate={{ y: [0, -4, 0] }}
-                transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
-                className="text-3xl mb-2"
-              >
-                👟
-              </motion.div>
-              <div className="font-display text-sm">Gotowy na spacer?</div>
-              <div className="text-[11px] font-mono text-muted mt-1">
-                Aktywuj sensor poniżej aby liczyć kroki
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* Metrics */}
+        {/* Mood + motivation (compact single row) */}
         <motion.div variants={fadeUp}>
-          <MetricsGrid steps={ctx.stepsToday} cadence={ctx.cadence} />
+          <MoodAvatar steps={ctx.stepsToday} goal={ctx.goal} />
         </motion.div>
 
-        {/* 🇵🇱 Mood Avatar — zmienia się z progressem */}
-        {ctx.stepsToday > 0 && (
+        {/* Metrics — only show non-zero or when active */}
+        {(ctx.stepsToday > 0 || isActive) && (
           <motion.div variants={fadeUp}>
-            <MoodAvatar steps={ctx.stepsToday} goal={ctx.goal} />
+            <MetricsGrid steps={ctx.stepsToday} cadence={ctx.cadence} />
           </motion.div>
         )}
 
-        {/* Polskie porównanie dystansu */}
-        {ctx.stepsToday > 0 && (
-          <motion.div variants={fadeUp}>
-            <DistanceFunFact steps={ctx.stepsToday} stepLengthCm={ctx.stepLength} />
-          </motion.div>
-        )}
-
-        {/* Active session timer */}
-        <ActiveSession
-          active={ctx.status === "active" || ctx.status === "demo" || ctx.status === "manual"}
-          paused={ctx.paused}
-        />
-
-        {/* Background steps recovery banner */}
-        <BackgroundStepsBanner
-          backgroundSteps={ctx.backgroundSteps}
-          onAccept={ctx.acceptBackgroundSteps}
-          onDismiss={ctx.dismissBackgroundSteps}
-        />
-
-        {/* Background mode info */}
-        <BackgroundInfo
-          sensorActive={ctx.status === "active" || ctx.status === "demo"}
-          wakeLockActive={ctx.wakeLockActive}
-        />
-
-        {/* New daily record */}
-        <DailyRecord stepsToday={ctx.stepsToday} history={ctx.history} />
-
-        {/* Smart insights — forecast, comparisons, nudges */}
+        {/* Smart insights (max 2, contextual) */}
         <SmartInsights
           stepsToday={ctx.stepsToday}
           goal={ctx.goal}
@@ -193,52 +106,12 @@ function Index() {
           status={ctx.status}
         />
 
-        {/* Quick stats link */}
-        {ctx.lifetimeSteps > 0 && (
-          <motion.div variants={fadeUp}>
-            <QuickStats
-              lifetimeSteps={ctx.lifetimeSteps}
-              streak={ctx.streak}
-              stepLength={ctx.stepLength}
-            />
-          </motion.div>
-        )}
-
-        {/* Yesterday + Motivation strip */}
-        <AnimatePresence>
-          {(ctx.yesterdaySteps > 0 || ctx.stepsToday === 0) && (
-            <motion.div
-              variants={fadeUp}
-              initial="hidden"
-              animate="show"
-              exit={{ opacity: 0, y: 8 }}
-              className="flex gap-2.5"
-            >
-              {ctx.yesterdaySteps > 0 && (
-                <motion.div
-                  whileTap={{ scale: 0.97 }}
-                  className="flex-1 brut-card p-3"
-                >
-                  <div className="text-[8px] font-display text-muted tracking-wider">WCZORAJ</div>
-                  <div className="font-display text-lg tabular-nums mt-0.5 leading-tight">
-                    {ctx.yesterdaySteps.toLocaleString("pl-PL")}
-                  </div>
-                  <div className="text-[9px] font-mono text-ink/50 mt-0.5">
-                    {ctx.yesterdaySteps >= ctx.goal
-                      ? <span className="text-success">✓ cel</span>
-                      : `${Math.round((ctx.yesterdaySteps / ctx.goal) * 100)}%`}
-                  </div>
-                </motion.div>
-              )}
-              <motion.div
-                whileTap={{ scale: 0.97 }}
-                className={`${ctx.yesterdaySteps > 0 ? "flex-1" : "w-full"} brut-card p-3 flex items-center justify-center`}
-              >
-                <div className="text-center font-mono text-[11px] text-ink/60 leading-snug">{motivation}</div>
-              </motion.div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+        {/* Background steps recovery */}
+        <BackgroundStepsBanner
+          backgroundSteps={ctx.backgroundSteps}
+          onAccept={ctx.acceptBackgroundSteps}
+          onDismiss={ctx.dismissBackgroundSteps}
+        />
 
         {/* Sensor controls */}
         <motion.div variants={fadeUp}>
@@ -254,12 +127,10 @@ function Index() {
           />
         </motion.div>
 
-        {/* Footer */}
-        <motion.footer variants={fadeUp} className="pt-1 text-center">
-          <p className="font-mono text-[9px] text-ink/40 tracking-wide">
-            Dane lokalnie · Bez konta · Bez chmury
-          </p>
-        </motion.footer>
+        {/* Motivation text */}
+        <motion.div variants={fadeUp} className="text-center">
+          <p className="font-mono text-[10px] text-ink/50 leading-snug">{motivation}</p>
+        </motion.div>
       </motion.main>
 
       <SettingsSheet
@@ -299,49 +170,41 @@ function Header({ onSettings, streak }: { onSettings: () => void; streak: number
       transition={{ type: "spring", stiffness: 300, damping: 30 }}
       className="sticky top-0 z-30 bg-bg/80 backdrop-blur-xl"
     >
-      {/* 🇵🇱 Polish flag stripe at top */}
       <div className="h-[3px] flex">
         <div className="flex-1 bg-polska-white" />
         <div className="flex-1 bg-polska-red" />
       </div>
-
-      <div className="mx-auto max-w-md px-4 py-3 flex items-center justify-between gap-3">
+      <div className="mx-auto max-w-md px-4 py-2.5 flex items-center justify-between gap-3">
         <div className="flex items-center gap-2.5 min-w-0">
           <motion.div
             whileTap={{ scale: 0.9, rotate: -5 }}
-            className="w-9 h-9 grid place-items-center font-display text-surface text-lg shrink-0 rounded-xl shadow-sm relative overflow-hidden"
+            className="w-8 h-8 grid place-items-center font-display text-sm shrink-0 rounded-lg relative overflow-hidden"
             style={{ background: "linear-gradient(180deg, #ffffff 50%, var(--polska-red) 50%)" }}
             aria-hidden="true"
           >
-            <span className="relative z-10 text-ink font-display text-base" style={{ textShadow: "0 0 4px rgba(255,255,255,0.8)" }}>K</span>
+            <span className="relative z-10 text-ink font-display" style={{ textShadow: "0 0 3px rgba(255,255,255,0.8)" }}>K</span>
           </motion.div>
           <div className="min-w-0">
-            <div className="font-display text-[15px] leading-none truncate">KROKI</div>
-            <div className="text-[10px] font-mono text-muted/80 leading-none mt-1">
-              {new Date().toLocaleDateString("pl-PL", { weekday: "long", day: "numeric", month: "long" })}
+            <div className="font-display text-sm leading-none truncate">KROKI</div>
+            <div className="text-[9px] font-mono text-muted/70 leading-none mt-0.5">
+              {new Date().toLocaleDateString("pl-PL", { weekday: "short", day: "numeric", month: "short" })}
             </div>
           </div>
         </div>
-        <div className="flex items-center gap-2 shrink-0">
+        <div className="flex items-center gap-1.5 shrink-0">
           {streak > 0 && (
-            <motion.div
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              transition={{ type: "spring", stiffness: 400, damping: 15 }}
-              className="bg-polska-red/10 border border-polska-red/30 px-2 py-1 rounded-full font-display text-[11px] text-polska-red flex items-center gap-1"
-            >
-              <span>🇵🇱</span> {streak}
-            </motion.div>
+            <div className="bg-polska-red/10 border border-polska-red/25 px-1.5 py-0.5 rounded-full font-display text-[10px] text-polska-red flex items-center gap-0.5" data-compact>
+              🔥 {streak}
+            </div>
           )}
           <motion.button
-            whileTap={{ scale: 0.88, rotate: 45 }}
+            whileTap={{ scale: 0.85 }}
             onClick={onSettings}
             aria-label="Ustawienia"
-            className="w-9 h-9 grid place-items-center rounded-xl bg-surface border border-ink/10 shadow-sm"
+            className="w-8 h-8 grid place-items-center rounded-lg bg-surface border border-ink/10"
           >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="12" cy="12" r="3" />
-              <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+              <path d="M4 6h16M4 12h16M4 18h16" />
             </svg>
           </motion.button>
         </div>
