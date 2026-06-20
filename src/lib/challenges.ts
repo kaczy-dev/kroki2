@@ -134,4 +134,44 @@ export const CHALLENGES: Challenge[] = [
       return { progress: daysAbove1k, target: 7, completed: daysAbove1k >= 7 };
     },
   },
+  // 🇵🇱 Polskie święta — specjalne wyzwania
+  {
+    id: "poland_independence",
+    title: "11 Listopada 🇵🇱",
+    description: "11 km na Święto Niepodległości! (ok. 14 400 kr.)",
+    icon: "🇵🇱",
+    duration: "week",
+    check: (ctx) => {
+      const today = new Date();
+      const isNovember = today.getMonth() === 10; // 0-indexed
+      if (!isNovember) return { progress: 0, target: 14400, completed: false };
+      return { progress: ctx.todaySteps, target: 14400, completed: ctx.todaySteps >= 14400 };
+    },
+  },
+  {
+    id: "poland_constitution",
+    title: "3 Maja ⚔️",
+    description: "3 000 kroków co godzinę (przez 3h = 9k)",
+    icon: "📜",
+    duration: "week",
+    check: (ctx) => {
+      const today = new Date();
+      const isMay = today.getMonth() === 4;
+      if (!isMay) return { progress: 0, target: 9000, completed: false };
+      return { progress: ctx.todaySteps, target: 9000, completed: ctx.todaySteps >= 9000 };
+    },
+  },
+  {
+    id: "grunwald",
+    title: "Bitwa pod Grunwaldem",
+    description: "15 lipca — 15 000 kroków jak 15 000 rycerzy!",
+    icon: "🗡️",
+    duration: "week",
+    check: (ctx) => {
+      const today = new Date();
+      const isJuly15 = today.getMonth() === 6 && today.getDate() === 15;
+      if (!isJuly15) return { progress: 0, target: 15000, completed: false };
+      return { progress: ctx.todaySteps, target: 15000, completed: ctx.todaySteps >= 15000 };
+    },
+  },
 ];

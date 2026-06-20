@@ -262,9 +262,22 @@ export function useLocalHistory() {
     return out;
   })();
 
+  // #7 Edit historical day
+  const editHistoryDay = useCallback((date: string, steps: number) => {
+    setState((s) => {
+      const filtered = s.history.filter((h) => h.date !== date);
+      const next: StoredState = {
+        ...s,
+        history: [...filtered, { date, steps }].sort((a, b) => a.date.localeCompare(b.date)).slice(-90),
+      };
+      save(next);
+      return next;
+    });
+  }, []);
+
   return {
     state, settings, ready, updateSteps, setGoal, resetToday,
     exportJson, importJson, streak, last7, yesterdaySteps,
-    setStepLength, streakFreezeUsed,
+    setStepLength, streakFreezeUsed, editHistoryDay,
   };
 }

@@ -37,6 +37,7 @@ interface Ctx {
   stepLength: number;
   setStepLength: (cm: number) => void;
   streakFreezeUsed: boolean;
+  editHistoryDay: (date: string, steps: number) => void;
   // achievements
   unlocked: Set<string>;
   // wake lock
@@ -316,6 +317,7 @@ export function StepProvider({ children }: { children: ReactNode }) {
     stepLength: hist.settings.stepLengthCm,
     setStepLength: hist.setStepLength,
     streakFreezeUsed: hist.streakFreezeUsed,
+    editHistoryDay: hist.editHistoryDay,
     unlocked: unlockedRef.current,
     wakeLockActive: wake.active,
     toggleWakeLock: () => (wake.active ? wake.release() : wake.request()),
